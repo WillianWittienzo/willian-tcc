@@ -89,7 +89,7 @@ export default function FAQ() {
         <p>Ainda tem alguma dúvida?</p>
         <div className={styles.buttons}>
           <a
-            href="https://wa.me/5511999999999"
+            href="https://wa.me/44991145515?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20informa%C3%A7%C3%B5es%20sobre%20a%20Coqueiro%20Team!!"
             target="_blank"
             rel="noopener noreferrer"
             className={styles.entrarNotime}

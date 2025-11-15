@@ -25,6 +25,7 @@ const Header: React.FC = () => {
     <header className={`${styles.header} ${isScrolled ? styles.scrolled : ""}`}>
       <div className={styles.logo}>LUCAS ANDRADE</div>
 
+      {/* MENU DESKTOP */}
       <nav className={styles.nav}>
         <button className={styles.navButton} onClick={() => scrollToSection("sobre")}>
           Sobre
@@ -43,6 +44,7 @@ const Header: React.FC = () => {
         </button>
       </nav>
 
+      {/* BOTÃO MOBILE */}
       <button
         className={styles.mobileMenuButton}
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -50,6 +52,7 @@ const Header: React.FC = () => {
         {isMobileMenuOpen ? "✕" : "☰"}
       </button>
 
+      {/* MENU MOBILE */}
       <nav className={`${styles.mobileNav} ${isMobileMenuOpen ? styles.showMobileNav : ""}`}>
         <button onClick={() => scrollToSection("sobre")}>Sobre</button>
         <button onClick={() => scrollToSection("como-funciona")}>Como Funciona</button>

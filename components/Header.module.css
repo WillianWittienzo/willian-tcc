@@ -8,7 +8,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  background-color: #0b1f13; /* fundo verde escuro */
+  background-color: #0b1f13;
   color: #f1f5f9;
   z-index: 100;
   transition: all 0.3s ease;
@@ -22,7 +22,7 @@
 .logo {
   font-weight: bold;
   font-size: 1.5rem;
-  color: #ffffff; 
+  color: #ffffff;
 }
 
 .nav {
@@ -34,7 +34,7 @@
 .navButton {
   background: none;
   border: none;
-  color: #ffffff; 
+  color: #ffffff;
   font-weight: 500;
   cursor: pointer;
   transition: color 0.2s ease;
@@ -59,26 +59,37 @@
   background-color: #5a7662;
 }
 
-/* Mobile */
+/* MOBILE BUTTON */
 .mobileMenuButton {
   display: none;
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 2rem;
   color: #f1f5f9;
   cursor: pointer;
+  z-index: 200;
 }
 
+/* MOBILE MENU */
 .mobileNav {
   display: none;
+  position: fixed;
+  top: 80px;
+  right: 0;
+  width: 100%;
+  background-color: #0b1f13;
+  padding: 20px 32px;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 8px;
+  gap: 20px;
+  z-index: 150;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  animation: fadeIn 0.3s ease;
 }
 
 .mobileNav button {
   background: none;
   border: none;
+  font-size: 1.1rem;
   color: #a3bfa8;
   font-weight: 500;
   cursor: pointer;
@@ -92,11 +103,18 @@
   display: flex;
 }
 
+/* MOBILE BREAKPOINT */
 @media (max-width: 768px) {
   .nav {
     display: none;
   }
+
   .mobileMenuButton {
     display: block;
   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

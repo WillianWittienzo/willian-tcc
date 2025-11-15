@@ -93,7 +93,7 @@ const Feedback: React.FC = () => {
       
         {/* Botão */}
         <div className={styles.ctaContainer}>
-          <button className={styles.ctaButton} onClick={() => window.open("https://wa.me/554499999999?text=Oi, vim pelo site!","_blank")}>Entrar no Time</button>
+          <button className={styles.ctaButton} onClick={() => window.open("https://wa.me/44991145515?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20informa%C3%A7%C3%B5es%20sobre%20a%20Coqueiro%20Team!!")}>Entrar no Time</button>
         </div>
       </div>
     </section>

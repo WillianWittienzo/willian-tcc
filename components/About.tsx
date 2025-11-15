@@ -14,10 +14,10 @@ const About: FC = () => {
                     <div className={styles.textContent}>
                         <div className={styles.label}>Quem sou eu</div>
 
-                        <h2 className={styles.title}>Lucas Andrade</h2>
+                        <h2 className={styles.title}>LUCAS COQUEIRO</h2>
 
                         <p className={styles.paragraph}>
-                            Sou Lucas Andrade, personal trainer há mais de <strong>6 anos</strong>.
+                            Sou Lucas Coqueiro, personal trainer há mais de <strong>6 anos</strong>.
                             Especialista em treino de força e reeducação corporal, ajudo homens e mulheres a
                             conquistarem resultados reais com um acompanhamento 100% individualizado.
                         </p>
@@ -52,8 +52,7 @@ const About: FC = () => {
                                 className={styles.buttonGroup}
                                 onClick={() =>
                                     window.open(
-                                        "https://wa.me/554499999999?text=Oi, vim pelo site!",
-                                        "_blank"
+                                        "https://wa.me/44991145515?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20informa%C3%A7%C3%B5es%20sobre%20a%20Coqueiro%20Team!!"
                                     )
                                 }
                             >
@@ -68,7 +67,7 @@ const About: FC = () => {
                         <div className={styles.imageContainer}>
                             <img
                                 src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=80"
-                                alt="Lucas Andrade - Personal Trainer"
+                                alt="LUCAS COQUEIRO - Personal Trainer"
                                 className={styles.image}
                             />
                             <div className={styles.overlay}></div>
@@ -76,7 +75,7 @@ const About: FC = () => {
                                 <div className={styles.quoteText}>
                                     "Seu progresso é minha motivação"
                                 </div>
-                                <div className={styles.quoteAuthor}>- Lucas Andrade</div>
+                                <div className={styles.quoteAuthor}>- LUCAS COQUEIRO </div>
                             </div>
                         </div>
                     </div>

@@ -42,7 +42,6 @@
     color: rgb(236, 231, 223);
 }
 
-
 .subtitle {
     font-size: 1.125rem;
     color: rgb(198, 184, 159);
@@ -56,8 +55,7 @@
     justify-content: center;
     align-items: center;
     gap: 8px;
-    font-size: .875rem;
-    line-height: 1.25rem;
+    font-size: 0.875rem;
     color: rgb(198, 184, 159);
     max-width: 40rem;
     margin: 0 auto;
@@ -75,7 +73,6 @@
         gap: 30px;
         margin-bottom: 50px;
     }
-
     .carousel {
         display: none;
     }
@@ -122,7 +119,6 @@
 .planName {
     font-size: 1.6rem;
     font-weight: 700;
-    font-family: Poppins, system-ui, sans-serif; 
     color: rgb(236, 231, 223);
 }
 
@@ -181,7 +177,7 @@
 }
 
 .checkIcon {
-    color:  rgb(99, 131, 108);
+    color: rgb(99, 131, 108);
     margin-top: 2px;
     flex-shrink: 0;
 }
@@ -196,17 +192,14 @@
     font-weight: 600;
     cursor: pointer;
     transition: background 0.3s ease;
-    height: 45px;
-    display: flex;    
+    display: flex;
     justify-content: center;
     align-items: center;
-    
 }
 
 .buttonPrimary {
     background-color: rgb(99, 131, 108);
     color: #fff;
-    
 }
 
 .buttonPrimary:hover {
@@ -222,7 +215,6 @@
     background-color: #d1d5db;
 }
 
-/* CARROSSEL MOBILE */
 .carousel {
     margin-bottom: 50px;
 }
@@ -233,6 +225,8 @@
     background: rgb(18, 43, 35);
     border-radius: 16px;
     padding: 20px;
+    position: relative;
+    top: 10px;
     max-width: 624px;
     margin: 0 auto;
     color: rgb(198, 184, 159);
@@ -245,90 +239,108 @@
 
 /* ANIMAÇÃO */
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.anchorage {
-  margin-bottom: 4px;
-}
+/* CAMPOS REUTILIZADOS */
+.anchorage { margin-bottom: 4px; }
 
 .oldPrice {
-  color: rgb(150, 140, 120);
-  text-decoration: line-through;
-  font-size: 1rem;
+    color: rgb(150, 140, 120);
+    text-decoration: line-through;
+    font-size: 1rem;
 }
 
+/* Destaque Treino & Dieta */
 .dietaHighlight {
-  border: 2px solid rgb(180, 130, 100);
+    border: 2px solid rgb(180, 130, 100);
+    box-shadow: 0 0 10px rgba(180, 130, 100, 0.2);
 }
 
 .dietaTitle {
-  color: rgb(240, 210, 150);
-  text-shadow: 0 0 6px rgba(180, 130, 100, 0.3);
+    color: rgb(255, 170, 0);
+    text-shadow: 0 0 6px rgba(180, 130, 100, 0.3);
 }
 
-/* NOVOS ESTILOS PARA DOIS CARDS LADO A LADO */
-
+/* DOIS CARDS */
 .twoColumns {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
 }
 
 @media (min-width: 1024px) {
-  .twoColumns {
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 40px;
-    padding-bottom: 30px;
-  }
+    .twoColumns {
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 40px;
+        padding-bottom: 30px;
+    }
 }
 
 .mainCard {
-  flex: 1;
-  background: rgb(18, 43, 35);
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  width: 100px;
+    flex: 1;
+    background: rgb(18, 43, 35);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    width: 100%;
 }
 
 .planMainTitle {
-  text-align: center;
-  font-family: Poppins, system-ui, sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: rgb(236, 231, 223);
-  margin-bottom: 20px;
+    text-align: center;
+    font-family: Poppins, system-ui, sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgb(236, 231, 223);
+    margin-bottom: 20px;
 }
 
-.anchorage {
-  margin-bottom: 4px;
+/* Ajustes gerais */
+.section img,
+.section video,
+.section picture {
+    max-width: 100%;
+    height: auto;
 }
 
-.oldPrice {
-  color: rgb(150, 140, 120);
-  text-decoration: line-through;
-  font-size: 1rem;
+.title,
+.planName,
+.planMainTitle {
+    word-wrap: break-word;
+    white-space: normal;
 }
 
-/* Destaque para Treino & Dieta */
-.dietaHighlight {
-  border: 2px solid rgb(180, 130, 100);
-  box-shadow: 0 0 10px rgba(180, 130, 100, 0.2);
+.twoColumns > *,
+.grid > *,
+.card,
+.mainCard {
+    min-width: 0;
 }
 
-.dietaTitle {
-  color: rgb(240, 210, 150);
-  text-shadow: 0 0 6px rgba(180, 130, 100, 0.3);
+/* RESPONSIVO */
+@media (max-width: 1024px) {
+    .card { height: auto; }
+    .title { font-size: 36px; }
+    .planName { font-size: 1.4rem; }
+    .planMainTitle { font-size: 1.7rem; }
 }
- 
+
+@media (max-width: 640px) {
+    .title { font-size: 30px; }
+    .section { padding: 20px 14px; }
+}
+
+@media (min-width: 500px) and (max-width: 1023px) {
+    .title,
+    .planMainTitle {
+        writing-mode: horizontal-tb !important;
+        transform: none !important;
+        text-align: center;
+    }
+    .section { padding: 20px; }
+    .twoColumns { flex-direction: column; align-items: center; }
+    .mainCard { max-width: 550px; }
+}

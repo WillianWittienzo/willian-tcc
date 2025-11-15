@@ -1,5 +1,5 @@
 .footer {
-  background-color: #0b1f13; /* bg-brand-green-dark */
+  background-color: #0b1f13;
   color: white;
   padding: 3rem 0;
 }
@@ -10,6 +10,7 @@
   padding: 0 1rem;
 }
 
+/* GRID BASE */
 .grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -23,6 +24,7 @@
   }
 }
 
+/* TIPOGRAFIA */
 .title {
   font-family: "YourDisplayFont", sans-serif;
   font-weight: 700;
@@ -47,6 +49,7 @@
   margin-bottom: 1rem;
 }
 
+/* LINKS */
 .linkList {
   list-style: none;
   padding: 0;
@@ -64,10 +67,12 @@
   color: white;
 }
 
+/* ÍCONES SOCIAIS */
 .socialIcons {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .socialLink {
@@ -81,13 +86,13 @@
   transition: background-color 0.3s;
   text-decoration: none;
   color: white;
-  font-weight: bold;
 }
 
 .socialLink:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
+/* CONTATO */
 .contact {
   display: flex;
   align-items: center;
@@ -96,10 +101,61 @@
   opacity: 0.8;
 }
 
+/* RODAPÉ FINAL */
 .bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 2rem;
   text-align: center;
   font-size: 0.875rem;
   opacity: 0.7;
+}
+
+/* ---------------------------- */
+/*     RESPONSIVIDADE EXTRA     */
+/* ---------------------------- */
+
+/* CENTRALIZA TUDO NO MOBILE */
+@media (max-width: 768px) {
+  .grid > div {
+    text-align: center;
+  }
+
+  .linkList,
+  .socialIcons,
+  .contact {
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+/* Smartphones pequenos */
+@media (max-width: 480px) {
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .socialLink {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+
+  .footer {
+    padding: 2rem 0;
+  }
+}
+
+/* Tablets */
+@media (min-width: 480px) and (max-width: 1024px) {
+  .title {
+    font-size: 1.8rem;
+  }
+
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
+/* Prevenção de layout esticado */
+.grid > * {
+  min-width: 0;
 }

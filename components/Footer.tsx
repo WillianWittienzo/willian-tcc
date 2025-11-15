@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import styles from "./Footer.module.css";
+import { FaInstagram, FaWhatsapp,FaClock } from "react-icons/fa";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -16,7 +17,7 @@ const Footer: React.FC = () => {
         <div className={styles.grid}>
           {/* Brand */}
           <div>
-            <div className={styles.title}>LUCAS ANDRADE</div>
+            <div className={styles.title}>LUCAS COQUEIRO</div>
             <p className={styles.description}>
               Personal Trainer especializado em transformação física e reeducação corporal.
             </p>
@@ -46,40 +47,30 @@ const Footer: React.FC = () => {
             <div className={styles.socialIcons}>
               {/* Coloque seus SVGs ou imagens aqui */}
               <a
-                href="#"
+                href="https://www.instagram.com/lucascof_/p/CqivRozLvqQ/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.socialLink}
                 aria-label="Instagram"
               >
                 {/* SVG Instagram */}
-                <span>IG</span>
+                <FaInstagram size={24}/>
               </a>
               <a
-                href="#"
+                href="https://wa.me/44991145515?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20informa%C3%A7%C3%B5es%20sobre%20a%20Coqueiro%20Team!!"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.socialLink}
-                aria-label="TikTok"
+                aria-label="WhatsApp"
               >
-                {/* SVG TikTok */}
-                <span>TT</span>
-              </a>
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.socialLink}
-                aria-label="YouTube"
-              >
-                {/* SVG YouTube */}
-                <span>YT</span>
+                {/* SVG WhatsApp */}
+                <FaWhatsapp size={24}/>
               </a>
             </div>
 
             <div className={styles.contact}>
               {/* Coloque um SVG de relógio se quiser */}
-              <span>⏰</span>
+              <FaClock size={24}/>
               <span>Atendimento: Seg - Sex, 8h às 20h</span>
             </div>
           </div>
@@ -88,7 +79,7 @@ const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className={styles.bottom}>
           <p>
-            © {currentYear} Lucas Andrade - Personal Trainer. Todos os direitos reservados.
+            © {currentYear} LUCAS COQUEIRO - Personal Trainer. Todos os direitos reservados.
           </p>
         </div>
       </div>
