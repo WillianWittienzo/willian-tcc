@@ -6,41 +6,41 @@ import { MessageCircle } from "lucide-react";
 
 const feedbacks = [
   {
-    name: "Maria S.",
+    name: "",
     message:
-      "1 Adorei Lucas Muito obrigado por explicar tudo Realmente nunca fizeram uma avaliação dessa, adorei, realmente os locais que vc pontuou são os que mais me incomodam principalmente tríceps, adorei mesmo 🔥",
+      "Eu gostei muito que, após cada avaliação, você adapta para a gente melhorar onde não está evoluindo bem. A cada mês que passa, conseguimos ver nitidamente os resultados! Adorando seu trabalho! 🔥",
     time: "há 2 dias",
   },
   {
-    name: "Pedro M.",
+    name: "",
     message:
-      " Está indo bem!! Estou até na academia agora treinando E ontem minhas amigas estavam falando que minha bunda cresceu, fiquei até feliz com isso kkkk 💪",
+      " Está indo bem!! Estou até na academia agora treinando. E ontem minhas amigas estavam falando que minha bunda cresceu, fiquei até feliz com isso kkkk 💪",
     time: "há 1 semana",
   },
   {
-    name: "Juliana R.",
+    name: "",
     message:
-      "Eu gostei muito que após cada avaliação vc adapta pra gente melhorar onde não está evoluindo bem. Cada mês q psssa a gente consegue ver nitidamente os resultados! Adoroando seu trabalho ❤️",
+      "Adorei, Lucas. Muito obrigado por explicar tudo. Realmente nunca fizeram uma avaliação dessas, adorei. Realmente, os locais que você pontuou são os que mais me incomodam, principalmente tríceps. Adorei mesmo.",
     time: "há 3 dias",
   },
   {
-    name: "Roberto Carlos",
+    name: "",
     message:
-      "Futebol pra Cima"
+      "Vamo boraa! Valeuu. Tô curtindo os resultados, tá vindo bem rápido."
       ,
     time: "há 3 dias",
   },
   {
-    name: "Bruno Monteiro",
+    name: "",
     message:
       "Vamos boraa! Valeuu"
       ,
     time: "há 3 dias",
   },
   {
-    name: "João Ramalho",
+    name: "",
     message:
-      "To curtindo os resultados, Ta vindo bem rapido"
+      "Achei Top"
       ,
     time: "há 5 dias",
   },

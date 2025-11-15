@@ -91,7 +91,7 @@ export default function Carousel() {
   };
 
   return (
-    <section className={styles.wrapper}>
+    <section id="resultados" className={styles.wrapper}>
       <div className={styles.cardphoto}>
         <div className={styles.header}>
           <div className={styles.tagline}>Transformações</div>
@@ -149,7 +149,7 @@ export default function Carousel() {
               </div>
 
               <div className={styles.info}>
-                <h3>{result.name}</h3>
+                { <h3>{result.name}</h3> }
                 <p>{result.result}</p>
               </div>
             </div>
