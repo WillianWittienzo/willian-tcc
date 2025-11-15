@@ -1,6 +1,6 @@
 .wrapper {
   background-color: rgb(12, 29, 23);
-   text-align: center;
+  text-align: center;
   width: 100%;
   display: flex;
   justify-content: center;
@@ -45,12 +45,12 @@
 .container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap:40px;
+  gap: 40px;
   justify-items: center;
 }
 
 .card {
-  background: RGB(18,43,35);
+  background: RGB(18, 43, 35);
   border-radius: 12px;
   overflow: hidden;
   text-align: center;
@@ -188,42 +188,28 @@
 }
 
 .activeDot {
-  background-color: #29ddff;
-  /* Cor ativa (sua cor principal) */
+  background-color: #5d7a64;
   transform: scale(1.1);
-  /* Um pequeno destaque visual */
 }
-
-/* --- Dica de correção para imagens (se necessário) --- */
 
 .image {
   max-width: 100%;
   max-height: 100%;
-  /* Mude de 'contain' para 'cover' para evitar bordas pretas */
-  /* e fazer a imagem preencher a área, cortando o excesso */
   object-fit: contain;
   height: 100%;
-  /* Garante que preencha a altura */
   width: 100%;
-  /* Garante que preencha a largura */
   border-radius: 1rem;
 }
 
-/* --- Seção de Estatísticas (Novo Visual) --- */
-
-/* Definindo uma nova variável de cor para o verde da imagem */
 :root {
-  /* ... (outras variáveis) ... */
-  --stats-background: #5d7a64; /* Verde escuro similar ao da imagem */
+  --stats-background: #5d7a64;
 }
 
 .statsSection {
-  /* Usando a nova cor de fundo */
-  background-color: var(--stats-background); 
-  
+  background-color: var(--stats-background);
   color: var(--text-primary); /* Texto branco */
-  border-radius: 1rem;    /* rounded-2xl */
-  padding: 2.5rem;      /* p-8 sm:p-12 */
+  border-radius: 1rem; /* rounded-2xl */
+  padding: 2.5rem; /* p-8 sm:p-12 */
   margin-top: 3rem; /* Adicionado para separar da grade de resultados */
 }
 
@@ -243,8 +229,8 @@
 .statNumber {
   /* Ajustando o tamanho da fonte para ser grande */
   font-size: 3rem; /* 48px */
-  font-weight: 700;     /* font-bold */
-  margin-bottom: 0.5rem;/* mb-2 */
+  font-weight: 700; /* font-bold */
+  margin-bottom: 0.5rem; /* mb-2 */
   color: var(--text-primary); /* Garantindo que o número é branco */
 }
 
@@ -256,7 +242,7 @@
 
 .statLabel {
   /* Cor do texto para ser um branco suave (similar ao da imagem) */
-  color: rgba(255, 255, 255, 0.9); 
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
   font-size: 1.1rem; /* Aumentando um pouco a descrição */
 }

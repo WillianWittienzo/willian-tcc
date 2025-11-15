@@ -255,3 +255,80 @@
         transform: translateY(0);
     }
 }
+
+.anchorage {
+  margin-bottom: 4px;
+}
+
+.oldPrice {
+  color: rgb(150, 140, 120);
+  text-decoration: line-through;
+  font-size: 1rem;
+}
+
+.dietaHighlight {
+  border: 2px solid rgb(180, 130, 100);
+}
+
+.dietaTitle {
+  color: rgb(240, 210, 150);
+  text-shadow: 0 0 6px rgba(180, 130, 100, 0.3);
+}
+
+/* NOVOS ESTILOS PARA DOIS CARDS LADO A LADO */
+
+.twoColumns {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+@media (min-width: 1024px) {
+  .twoColumns {
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    padding-bottom: 30px;
+  }
+}
+
+.mainCard {
+  flex: 1;
+  background: rgb(18, 43, 35);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  width: 100px;
+}
+
+.planMainTitle {
+  text-align: center;
+  font-family: Poppins, system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgb(236, 231, 223);
+  margin-bottom: 20px;
+}
+
+.anchorage {
+  margin-bottom: 4px;
+}
+
+.oldPrice {
+  color: rgb(150, 140, 120);
+  text-decoration: line-through;
+  font-size: 1rem;
+}
+
+/* Destaque para Treino & Dieta */
+.dietaHighlight {
+  border: 2px solid rgb(180, 130, 100);
+  box-shadow: 0 0 10px rgba(180, 130, 100, 0.2);
+}
+
+.dietaTitle {
+  color: rgb(240, 210, 150);
+  text-shadow: 0 0 6px rgba(180, 130, 100, 0.3);
+}
+ 

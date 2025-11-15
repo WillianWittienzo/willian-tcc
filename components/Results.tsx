@@ -124,7 +124,7 @@ export default function Carousel() {
                     <div key={i} className={styles.imageSlide}>
                       <img
                         src={photo}
-                        alt={`${result.name} ${i + 1}`}
+                        alt={`${i + 1}`}
                         className={styles.image}
                       />
                     </div>
@@ -149,7 +149,6 @@ export default function Carousel() {
               </div>
 
               <div className={styles.info}>
-                { <h3>{result.name}</h3> }
                 <p>{result.result}</p>
               </div>
             </div>
