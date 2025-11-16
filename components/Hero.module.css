@@ -9,6 +9,12 @@
   overflow: hidden;
   text-align: center;
 }
+.heroContent {
+  max-width: 768px;
+  min-width: 300px;
+  width: 90%;
+}
+
 
 .backgroundPattern {
   position: absolute;
@@ -44,10 +50,11 @@
 }
 
 .subtitle {
-  font-size: 24px;
+  font-size: clamp(1rem, 2vw + 0.5rem, 1.5rem);
   margin-bottom: 2rem;
   color: rgba(255, 255, 255, 0.9);
   font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.4;
 }
 
 .buttonGroup {
@@ -205,5 +212,75 @@
 @media (min-width: 1024px) {
   .title {
     font-size: 4rem;
+  }
+}
+/* Telas grandes (não muda nada, só garante proporção) */
+@media (max-width: 1280px) {
+  .title {
+    font-size: 4.5rem;
+    line-height: 1.1;
+  }
+}
+
+/* Laptops médios */
+@media (max-width: 1024px) {
+  .title {
+    font-size: 3.8rem;
+  }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .title {
+    font-size: 3rem;
+  }
+  .subtitle {
+    font-size: 1.2rem;
+  }
+}
+
+/* Celulares grandes */
+@media (max-width: 640px) {
+  .title {
+    position: relative;
+    top: 30px;
+    font-size: 2.4rem;
+  }
+  .subtitle {
+    font-size: 1.1rem;
+    position: relative;
+    top: 30px;
+  }
+}
+
+/* Celulares pequenos */
+@media (max-width: 480px) {
+  .title {
+    position: relative;
+    top: 30px;
+    font-size: 2rem;
+  }
+  .subtitle {
+    font-size: 1rem;
+    position: relative;
+    top: 30px;
+  }
+}
+
+/* Celulares muito pequenos */
+@media (max-width: 400px) {
+  .title {
+    position: relative;
+    top: 30px;
+    font-size: 1.7rem;
+  }
+}
+
+/* Celulares muito pequenos */
+@media (max-width: 360px) {
+  .title {
+    position: relative;
+    top: 30px;
+    font-size: 1.7rem;
   }
 }

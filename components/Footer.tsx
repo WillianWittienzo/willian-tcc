@@ -21,7 +21,7 @@ const Footer: React.FC = () => {
             <p className={styles.description}>
               Personal Trainer especializado em transformação física e reeducação corporal.
             </p>
-            <div className={styles.cref}>CREF 123456-G/SP</div>
+            <div className={styles.cref}>CREF 038337-G/PR</div>
           </div>
 
           {/* Quick Links */}
@@ -71,7 +71,7 @@ const Footer: React.FC = () => {
             <div className={styles.contact}>
               {/* Coloque um SVG de relógio se quiser */}
               <FaClock size={24}/>
-              <span>Atendimento: Seg - Sex, 8h às 20h</span>
+              <span>Atendimento: "24h</span>
             </div>
           </div>
         </div>
