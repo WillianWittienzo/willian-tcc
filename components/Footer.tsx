@@ -71,7 +71,7 @@ const Footer: React.FC = () => {
             <div className={styles.contact}>
               {/* Coloque um SVG de relógio se quiser */}
               <FaClock size={24}/>
-              <span>Atendimento: "24h</span>
+              <span>Atendimento: 24h</span>
             </div>
           </div>
         </div>
