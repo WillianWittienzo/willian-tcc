@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import styles from "./Header.module.css";
+import Image from "next/image";
 
 const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -23,9 +24,11 @@ const Header: React.FC = () => {
 
   return (
     <header className={`${styles.header} ${isScrolled ? styles.scrolled : ""}`}>
-      <div className={styles.logo}>LUCAS COQUEIRO</div>
+      <div className={styles.logo}>
+        Lucas Coqueiro
+        <Image src='/logo.png' width={80} height={80} alt="logo" />
+      </div>
 
-      {/* MENU DESKTOP */}
       <nav className={styles.nav}>
         <button className={styles.navButton} onClick={() => scrollToSection("sobre")}>
           Sobre
@@ -44,7 +47,6 @@ const Header: React.FC = () => {
         </button>
       </nav>
 
-      {/* BOTÃO MOBILE */}
       <button
         className={styles.mobileMenuButton}
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -52,7 +54,6 @@ const Header: React.FC = () => {
         {isMobileMenuOpen ? "✕" : "☰"}
       </button>
 
-      {/* MENU MOBILE */}
       <nav className={`${styles.mobileNav} ${isMobileMenuOpen ? styles.showMobileNav : ""}`}>
         <button onClick={() => scrollToSection("sobre")}>Sobre</button>
         <button onClick={() => scrollToSection("como-funciona")}>Como Funciona</button>
