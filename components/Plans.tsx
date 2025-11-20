@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 import "swiper/css";
 import "swiper/css/pagination";
 import styles from "./Plans.module.css";
+import Link from "next/link";
 
 const treinoPlans = [
   {
@@ -133,15 +134,16 @@ const PlanCarousel = ({
                 )}
               </ul>
 
-              <button
+              <Link
                 className={`${styles.button} ${
                   highlight
                     ? styles.buttonPrimary
                     : styles.buttonSecondary
                 }`}
+                href="https://wa.me/44991145515?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20informa%C3%A7%C3%B5es%20sobre%20a%20Coqueiro%20Team!!"
               >
                 Começar agora
-              </button>
+              </Link>
             </div>
           </SwiperSlide>
         ))}

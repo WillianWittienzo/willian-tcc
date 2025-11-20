@@ -1,346 +1,373 @@
 .section {
-    background-color: rgb(23, 54, 44);
-    padding: 20px 20px;
+  background-color: rgb(23, 54, 44);
+  padding: 20px 20px;
 }
 
 .container {
-    max-width: 1340px;
-    margin: 0 auto;
+  max-width: 1340px;
+  margin: 0 auto;
 }
 
 .header {
-    text-align: center;
-    margin-bottom: 60px;
-    animation: fadeIn 0.5s ease-in-out;
+  text-align: center;
+  margin-bottom: 60px;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .tagline {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    background-color: rgba(179, 160, 128, 0.2);
-    color: rgb(99, 131, 108);
-    font-weight: 600;
-    border-radius: 9999px;
-    margin-bottom: 1.5rem;
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background-color: rgba(179, 160, 128, 0.2);
+  color: rgb(99, 131, 108);
+  font-weight: 600;
+  border-radius: 9999px;
+  margin-bottom: 1.5rem;
 }
 
 .badge {
-    display: inline-block;
-    background-color: rgba(59, 130, 246, 0.15);
-    color: #2563eb;
-    font-weight: 600;
-    padding: 6px 16px;
-    border-radius: 20px;
-    margin-bottom: 20px;
+  display: inline-block;
+  background-color: rgba(59, 130, 246, 0.15);
+  color: rgb(236, 231, 223);
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin-bottom: 20px;
 }
 
 .title {
-    font-family: Poppins, system-ui, sans-serif;
-    font-size: 48px;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    color: rgb(236, 231, 223);
+  font-family: Poppins, system-ui, sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: rgb(236, 231, 223);
 }
 
 .subtitle {
-    font-size: 1.125rem;
-    color: rgb(198, 184, 159);
-    max-width: 40rem;
-    margin: 0 auto;
-    padding-bottom: 30px;
+  font-size: 1.125rem;
+  color: rgb(198, 184, 159);
+  max-width: 40rem;
+  margin: 0 auto;
+  padding-bottom: 30px;
 }
 
 .paymentInfo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.875rem;
-    color: rgb(198, 184, 159);
-    max-width: 40rem;
-    margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: rgb(198, 184, 159);
+  max-width: 40rem;
+  margin: 0 auto;
 }
 
 /* GRID DESKTOP */
 .grid {
-    display: none;
+  display: none;
 }
 
 @media (min-width: 1024px) {
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 30px;
-        margin-bottom: 50px;
-    }
-    .carousel {
-        display: none;
-    }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-bottom: 50px;
+  }
+  .carousel {
+    display: none;
+  }
 }
 
 .card {
-    background: rgb(18, 43, 35);
-    border-radius: 16px;
-    padding: 40px 30px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    position: relative;
-    transition: all 0.3s ease;
-    height: 540px;
+  background: rgb(18, 43, 35);
+  border-radius: 16px;
+  padding: 40px 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+  transition: all 0.3s ease;
+  height: 540px;
 }
 
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
 .highlight {
-    border: 2px solid rgb(99, 131, 108);
-    transform: scale(1.03);
+  border: 2px solid rgb(99, 131, 108);
+  transform: scale(1.03);
 }
 
 .popular {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgb(99, 131, 108);
-    color: white;
-    padding: 6px 14px;
-    border-radius: 14px;
-    font-size: 0.85rem;
-    font-weight: 600;
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgb(99, 131, 108);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .cardHeader {
-    text-align: center;
-    margin-bottom: 24px;
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .planName {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: rgb(236, 231, 223);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: rgb(236, 231, 223);
 }
 
 .planDesc {
-    color: rgb(198, 184, 159);
-    font-size: 0.95rem;
+  color: rgb(198, 184, 159);
+  font-size: 0.95rem;
 }
 
 .priceBox {
-    text-align: center;
-    margin-bottom: 24px;
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 .priceLine {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
 }
 
 .rs {
-    font-size: 0.9rem;
-    color: rgb(198, 184, 159);
-    margin-right: 4px;
+  font-size: 0.9rem;
+  color: rgb(198, 184, 159);
+  margin-right: 4px;
 }
 
 .price {
-    font-size: 2.8rem;
-    font-weight: 700;
-    color: rgb(236, 231, 223);
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: rgb(236, 231, 223);
 }
 
 .period {
-    font-size: 1rem;
-    color: rgb(198, 184, 159);
-    margin-left: 4px;
+  font-size: 1rem;
+  color: rgb(198, 184, 159);
+  margin-left: 4px;
 }
 
 .total {
-    font-size: 0.9rem;
-    color: #6b7280;
+  font-size: 0.9rem;
+  color: #6b7280;
 }
 
 .features {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 24px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px;
 }
 
 .features li {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    color: rgb(198, 184, 159);
-    font-size: 0.95rem;
-    margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: rgb(198, 184, 159);
+  font-size: 0.95rem;
+  margin-bottom: 8px;
 }
 
 .checkIcon {
-    color: rgb(99, 131, 108);
-    margin-top: 2px;
-    flex-shrink: 0;
+  color: rgb(99, 131, 108);
+  margin-top: 2px;
+  flex-shrink: 0;
 }
 
 /* BUTTONS */
 .button {
-    width: 100%;
-    padding: 14px 0;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .buttonPrimary {
-    background-color: rgb(99, 131, 108);
-    color: #fff;
+  background-color: rgb(99, 131, 108);
+  color: #fff;
 }
 
 .buttonPrimary:hover {
-    background-color: #1e4fd7;
+  background-color: rgb(236, 231, 223);
 }
 
 .buttonSecondary {
-    background-color: rgb(198, 184, 159);
-    color: #111827;
+  background-color: rgb(198, 184, 159);
+  color: #111827;
 }
 
 .buttonSecondary:hover {
-    background-color: #d1d5db;
+  background-color: #d1d5db;
 }
 
 .carousel {
-    margin-bottom: 50px;
+  margin-bottom: 50px;
 }
 
 /* GARANTIA */
 .guarantee {
-    text-align: center;
-    background: rgb(18, 43, 35);
-    border-radius: 16px;
-    padding: 20px;
-    position: relative;
-    top: 10px;
-    max-width: 624px;
-    margin: 0 auto;
-    color: rgb(198, 184, 159);
-    font-size: 1rem;
+  text-align: center;
+  background: rgb(18, 43, 35);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  top: 10px;
+  max-width: 624px;
+  margin: 0 auto;
+  color: rgb(198, 184, 159);
+  font-size: 1rem;
 }
 
 .guarantee strong {
-    color: rgb(236, 231, 223);
+  color: rgb(236, 231, 223);
 }
 
 /* ANIMAÇÃO */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* CAMPOS REUTILIZADOS */
-.anchorage { margin-bottom: 4px; }
+.anchorage {
+  margin-bottom: 4px;
+}
 
 .oldPrice {
-    color: rgb(150, 140, 120);
-    text-decoration: line-through;
-    font-size: 1rem;
+  color: rgb(150, 140, 120);
+  text-decoration: line-through;
+  font-size: 1rem;
 }
 
 /* Destaque Treino & Dieta */
 .dietaHighlight {
-    border: 2px solid rgb(180, 130, 100);
-    box-shadow: 0 0 10px rgba(180, 130, 100, 0.2);
+  border: 2px solid rgb(180, 130, 100);
+  box-shadow: 0 0 10px rgba(180, 130, 100, 0.2);
 }
 
 .dietaTitle {
-    color: rgb(255, 170, 0);
-    text-shadow: 0 0 6px rgba(180, 130, 100, 0.3);
+  color: rgb(255, 170, 0);
+  text-shadow: 0 0 6px rgba(180, 130, 100, 0.3);
 }
 
 /* DOIS CARDS */
 .twoColumns {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 @media (min-width: 1024px) {
-    .twoColumns {
-        flex-direction: row;
-        justify-content: center;
-        align-items: flex-start;
-        gap: 40px;
-        padding-bottom: 30px;
-    }
+  .twoColumns {
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    padding-bottom: 30px;
+  }
 }
 
 .mainCard {
-    flex: 1;
-    background: rgb(18, 43, 35);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    width: 100%;
+  flex: 1;
+  background: rgb(18, 43, 35);
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  width: 100%;
 }
 
 .planMainTitle {
-    text-align: center;
-    font-family: Poppins, system-ui, sans-serif;
-    font-size: 2rem;
-    font-weight: 700;
-    color: rgb(236, 231, 223);
-    margin-bottom: 20px;
+  text-align: center;
+  font-family: Poppins, system-ui, sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgb(236, 231, 223);
+  margin-bottom: 20px;
 }
 
 /* Ajustes gerais */
 .section img,
 .section video,
 .section picture {
-    max-width: 100%;
-    height: auto;
+  max-width: 100%;
+  height: auto;
 }
 
 .title,
 .planName,
 .planMainTitle {
-    word-wrap: break-word;
-    white-space: normal;
+  word-wrap: break-word;
+  white-space: normal;
 }
 
 .twoColumns > *,
 .grid > *,
 .card,
 .mainCard {
-    min-width: 0;
+  min-width: 0;
 }
 
 /* RESPONSIVO */
 @media (max-width: 1024px) {
-    .card { height: auto; }
-    .title { font-size: 36px; }
-    .planName { font-size: 1.4rem; }
-    .planMainTitle { font-size: 1.7rem; }
+  .card {
+    height: auto;
+  }
+  .title {
+    font-size: 36px;
+  }
+  .planName {
+    font-size: 1.4rem;
+  }
+  .planMainTitle {
+    font-size: 1.7rem;
+  }
 }
 
 @media (max-width: 640px) {
-    .title { font-size: 30px; }
-    .section { padding: 20px 14px; }
+  .title {
+    font-size: 30px;
+  }
+  .section {
+    padding: 20px 14px;
+  }
 }
 
 @media (min-width: 500px) and (max-width: 1023px) {
-    .title,
-    .planMainTitle {
-        writing-mode: horizontal-tb !important;
-        transform: none !important;
-        text-align: center;
-    }
-    .section { padding: 20px; }
-    .twoColumns { flex-direction: column; align-items: center; }
-    .mainCard { max-width: 550px; }
+  .title,
+  .planMainTitle {
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+    text-align: center;
+  }
+  .section {
+    padding: 20px;
+  }
+  .twoColumns {
+    flex-direction: column;
+    align-items: center;
+  }
+  .mainCard {
+    max-width: 550px;
+  }
 }

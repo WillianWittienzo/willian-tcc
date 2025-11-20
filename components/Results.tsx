@@ -44,7 +44,6 @@ export default function Carousel() {
     },
   ];
 
-  // 3. Agora o useState vai ler o array de 6 itens corretamente
   const [photoIndexes, setPhotoIndexes] = useState<number[]>(results.map(() => 0));
   const [startX, setStartX] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
