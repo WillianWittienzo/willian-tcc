@@ -42,7 +42,8 @@
   font-weight: bold;
   font-size: 72px;
   line-height: 1;
-  
+  padding-bottom: 80px;
+  padding-top: 80px;
 }
 
 .highlight {

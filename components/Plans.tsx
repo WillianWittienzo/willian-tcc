@@ -72,17 +72,31 @@ const PlanCarousel = ({
 }) => {
   return (
     <div
-      className={`${styles.mainCard} ${
-        highlight ? styles.dietaHighlight : ""
-      }`}
+      className={`${styles.mainCard} ${highlight ? styles.dietaHighlight : ""
+        }`}
     >
       <h2
-        className={`${styles.planMainTitle} ${
-          highlight ? styles.dietaTitle : ""
-        }`}
+        className={`${styles.planMainTitle} ${highlight ? styles.dietaTitle : ""
+          }`}
       >
         {title}
       </h2>
+
+      {/* ESTILO INLINE PARA AS BOLINHAS DO SWIPER FICAREM VERDES */}
+      <style>{`
+          .swiper-pagination-bullet {
+  width: 12px !important;
+  height: 12px !important;
+  background: rgb(99, 131, 108) !important;
+  opacity: 1 !important;
+}
+
+.swiper-pagination-bullet-active {
+  width: 14px !important;
+  height: 14px !important;
+  background: rgb(99, 131, 108) !important;
+}
+      `}</style>
 
       <Swiper
         modules={[Pagination, Autoplay]}
@@ -105,6 +119,7 @@ const PlanCarousel = ({
                     R$ {plan.oldPrice.toLocaleString("pt-BR")}
                   </span>
                 </div>
+
                 <div className={styles.priceLine}>
                   <span className={styles.rs}>R$</span>
                   <span className={styles.price}>
@@ -126,6 +141,7 @@ const PlanCarousel = ({
                   <Check size={18} className={styles.checkIcon} />
                   <span>Ajustes mensais</span>
                 </li>
+
                 {highlight && (
                   <li>
                     <Check size={18} className={styles.checkIcon} />
@@ -135,11 +151,8 @@ const PlanCarousel = ({
               </ul>
 
               <Link
-                className={`${styles.button} ${
-                  highlight
-                    ? styles.buttonPrimary
-                    : styles.buttonSecondary
-                }`}
+                className={`${styles.button} ${highlight ? styles.buttonPrimary : styles.buttonSecondary
+                  }`}
                 href="https://wa.me/44991145515?text=Ol%C3%A1%2C%20gostaria%20de%20saber%20mais%20informa%C3%A7%C3%B5es%20sobre%20a%20Coqueiro%20Team!!"
               >
                 Começar agora
@@ -158,6 +171,7 @@ const Plans = () => {
       <div className={styles.container}>
         <div className={styles.twoColumns}>
           <PlanCarousel title="PLANOS TREINO" plans={treinoPlans} />
+
           <PlanCarousel
             title="PLANOS TREINO & DIETA"
             plans={treinoDietaPlans}

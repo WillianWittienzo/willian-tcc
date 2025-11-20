@@ -73,6 +73,7 @@
     gap: 30px;
     margin-bottom: 50px;
   }
+
   .carousel {
     display: none;
   }
@@ -203,7 +204,7 @@
 }
 
 .buttonPrimary:hover {
-  background-color: rgb(236, 231, 223);
+  background-color: rgb(27, 58, 37);
 }
 
 .buttonSecondary {
@@ -212,7 +213,7 @@
 }
 
 .buttonSecondary:hover {
-  background-color: #d1d5db;
+  background-color: rgb(146, 151, 99);
 }
 
 .carousel {
@@ -243,6 +244,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -321,8 +323,8 @@
   white-space: normal;
 }
 
-.twoColumns > *,
-.grid > *,
+.twoColumns>*,
+.grid>*,
 .card,
 .mainCard {
   min-width: 0;
@@ -333,12 +335,15 @@
   .card {
     height: auto;
   }
+
   .title {
     font-size: 36px;
   }
+
   .planName {
     font-size: 1.4rem;
   }
+
   .planMainTitle {
     font-size: 1.7rem;
   }
@@ -348,26 +353,81 @@
   .title {
     font-size: 30px;
   }
+
   .section {
     padding: 20px 14px;
   }
 }
 
 @media (min-width: 500px) and (max-width: 1023px) {
+
   .title,
   .planMainTitle {
     writing-mode: horizontal-tb !important;
     transform: none !important;
     text-align: center;
   }
+
   .section {
     padding: 20px;
   }
+
   .twoColumns {
     flex-direction: column;
     align-items: center;
   }
+
   .mainCard {
     max-width: 550px;
   }
 }
+
+/* todo o seu CSS original está mantido aqui… */
+
+/* ========================== */
+/*  NOVO CARROSSEL CUSTOMIZADO */
+/* ========================== */
+
+.customCarouselWrapper {
+  width: 100%;
+}
+
+.customCarousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.customCarousel::-webkit-scrollbar {
+  display: none;
+}
+
+.slide {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  padding: 10px 0;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.bullet {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(99, 131, 108, 0.4);
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.activeBullet {
+  background: rgb(40, 87, 53);
+  transform: scale(1.3);
+}
+
