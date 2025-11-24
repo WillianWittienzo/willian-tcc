@@ -18,8 +18,8 @@ const About: FC = () => {
 
                         <p className={styles.paragraph}>
                             Sou Lucas Coqueiro, personal trainer há mais de <strong>6 anos</strong>.
-                            Especialista em treino de força e reeducação corporal, ajudo homens e mulheres a
-                            conquistarem resultados reais com um acompanhamento 100% individualizado.
+                            Especialização em treinamento personalizado e nutrição esportiva, ajudo mulheres a conquistarem seus objetivos com acompanhamento 100% personalizado
+                            Minha missão é direcionar você ao seu objetivo não com fórmula mágica mas com método e o suporte adequado para você.
                         </p>
 
                         <p className={styles.paragraph}>
@@ -65,15 +65,15 @@ const About: FC = () => {
                     {/* Imagem */}
                     <div className={styles.imageWrapper}>
                         <div className={styles.imageContainer}>
-                            <img
-                                src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=800&q=80"
-                                alt="LUCAS COQUEIRO - Personal Trainer"
-                                className={styles.image}
+                        <img
+                            src="/resultados/Foto_Lucas.jpeg"
+                            alt="LUCAS COQUEIRO - Personal Trainer"
+                            className={styles.image}
                             />
                             <div className={styles.overlay}></div>
                             <div className={styles.quote}>
                                 <div className={styles.quoteText}>
-                                    "Seu progresso é minha motivação"
+                                    "O básico elevado a outro nível"
                                 </div>
                                 <div className={styles.quoteAuthor}>- LUCAS COQUEIRO </div>
                             </div>

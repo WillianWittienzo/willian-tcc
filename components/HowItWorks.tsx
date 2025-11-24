@@ -19,7 +19,7 @@ const steps = [
     icon: LineChart,
     title: "Acompanhamento e Ajustes",
     description:
-      "Suporte direto via WhatsApp. Ajustes constantes conforme sua evolução e feedback.",
+      "Suporte direto via WhatsApp, com ajustes constantes conforme sua evolução, além de feedbacks quinzenais e calls avaliativas",
   },
   {
     icon: Trophy,
