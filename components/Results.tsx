@@ -14,33 +14,34 @@ export default function Carousel() {
   const results: ResultType[] = [
     {
      
-      photos: ["/resultados/resultado_01.jpeg", "/resultados/resultado_02.jpeg"],
-      result: "Redução de 15% de gordura corporal",
+      photos: ["/resultados/resultado_003.jpeg", "/resultados/resultado_002.jpeg","/resultados/resultado_001.jpeg"],
+      result: "3 anos de trabalho, aluno com lipedema em membros inferiores!",
     },
-    {
-     
-      photos: ["/resultados/resultado_03.jpeg", "/resultados/resultado_04.jpeg"],
-      result: "Aumento de massa muscular",
-    },
+
     {
     
-      photos: ["/resultados/resultado_05.jpeg", "/resultados/resultado_06.jpeg"],
-      result: "Melhora na postura e definição",
+      photos: ["/resultados/resultado_004.jpeg", "/resultados/resultado_005.jpeg"],
+      result: "15 dias de treino e dieta! Direcionamento correto faz a diferença"
+    },
+       {
+    
+      photos: ["/resultados/resultado_006.jpeg"],
+      result: "-17Kg em 3 meses",
     },
     {
    
-      photos: ["/resultados/resultado_07.jpeg", "/resultados/resultado_08.jpeg"],
-      result: "Mais energia e disposição no dia a dia",
-    },
-    {
-    
-      photos: ["/resultados/resultado_11.jpeg", "/resultados/resultado_10.jpeg"],
-      result: "Ganho de força e resistência",
+      photos: ["/resultados/resultado_007.jpeg", "/resultados/resultado_008.jpeg"],
+      result: "92Kg para 70Kg Trabalho de 3 anos e meio",
     },
     {
       
-      photos: ["/resultados/resultado_09.jpeg", "/resultados/resultado_12.jpeg"],
-      result: "Definição e tonificação muscular",
+      photos: ["/resultados/resultado_009.jpeg", "/resultados/resultado_010.jpeg","/resultados/resultado_012.jpeg"],
+      result: "Trabalho de 1 ano",
+    },
+      {
+      
+      photos: ["/resultados/resultado_011.jpeg"],
+      result: "Trabalho de 3 meses",
     },
   ];
 
@@ -49,7 +50,8 @@ export default function Carousel() {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleGoTo = (cardIdx: number, photoIdx: number) => {
-    setPhotoIndexes((prev) =>
+    console.log("oi")
+    setPhotoIndexes((prev) => 
       prev.map((p, i) => (i === cardIdx ? photoIdx : p))
     );
   };
@@ -61,6 +63,7 @@ export default function Carousel() {
   };
 
   const handlePrev = (idx: number) => {
+    console.log("oi")
     setPhotoIndexes((prev) =>
       prev.map((p, i) =>
         i === idx ? (p - 1 + results[idx].photos.length) % results[idx].photos.length : p
