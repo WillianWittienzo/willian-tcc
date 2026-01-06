@@ -1,20 +1,23 @@
 export const cardapio = [
   {
-    id: 1,
-    nome: "Picanha na Brasa",
-    descricao: "Picanha suculenta preparada na brasa.",
-    preco: 89.9,
+    nome: "Margherita",
+    descricao: "Molho de tomate, mussarela fresca,manjericão e azeite",
+    preco: 42.90,
+    imagem:"",
+    
   },
   {
-    id: 2,
-    nome: "Costela Premium",
-    descricao: "Costela bovina assada lentamente.",
-    preco: 79.9,
+    nome: "Calabresa",
+     descricao:"Calabresa fatiada, cebola, mussarela e orégano",
+    preco: 39.90,
+    imagem:"",
+   
   },
   {
-    id: 3,
-    nome: "Linguiça Artesanal",
-    descricao: "Linguiça artesanal temperada da casa.",
-    preco: 39.9,
+    nome:"Quatro Queijos",
+    descricao: "mussarela, provolone, gorgonzola e permesão",
+    preco: 49.90,
+    imagem:"",
+  
   },
 ];
