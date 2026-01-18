@@ -18,7 +18,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 /* animação de cor */
-@keyframes pulse-glow {
+@keyframes pulse-glow-orange {
   0%, 100% {
     box-shadow: 0 0 0 rgba(255,140,0,0);
   }
@@ -28,5 +28,21 @@ body {
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 4s infinite;
+  animation: pulse-glow-orange 4s infinite;
 }
+
+
+@keyframes pulse-glow-blue {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(3, 80, 245, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.384);
+  }
+}
+
+.animate-pulse-glow2 {
+  animation: pulse-glow-blue 1s infinite;
+}
+
+

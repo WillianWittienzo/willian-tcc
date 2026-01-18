@@ -72,3 +72,27 @@ export const cardapio = [
     image: 'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=500&h=500&fit=crop'
   }
 ];
+
+export const cards = [
+  
+  {
+    titulo: "Forno a Lenha",
+    subtitulo: "Pizzas assadas no forno a lenha tradicional",
+  },
+  {
+    titulo: "Delivery Grátis",
+    subtitulo: "Para pedidos acima de R$ 80",
+  },
+  {
+    titulo: "Entrega Rápida",
+    subtitulo: "Sua pizza em até 45 minutos",
+  },
+  {
+    titulo: "Ingredientes Premium",
+    subtitulo: "Só o melhor para você",
+  },
+  {
+    titulo: "",
+    subtitulo: "",
+  },
+];
