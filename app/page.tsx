@@ -3,7 +3,10 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { cards } from "@/components/data/cardapio";
-import CardapioPage from "./cardapio/page";
+import { cardapio } from "@/components/data/cardapio";
+import { CardItemHome } from "@/components/cardapio/CardItemHome";
+
+
 
 export default function Home() {
   return (
@@ -38,15 +41,21 @@ export default function Home() {
 
       <section >
         <div className= "bg-[hsl(30deg_20%_94.12%)]">
-        <h1 className="text-3xl md:text-3xl lg:text-3xl text-black text-center">
-              PIZZAS 
-              <span className="text-[hsl(33_100%_50%)]">
-                <span></span> POPULARES
-              </span>
+        <h1 className="text-3xl md:text-3xl lg:text-3xl text-black text-center">PIZZAS<span className="text-[hsl(33_100%_50%)]"><span></span> POPULARES</span>
             </h1>
             </div>
-      </section>
-      <CardapioPage/>
+              <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 sm:grid-cols-2 md:grid-cols-3">
+      {cardapio.slice(0, 3).map((pizza) => (
+        <CardItemHome
+           key={pizza.id}
+    nome={pizza.nome}
+    descricao={pizza.descricao}
+    preco={pizza.preco}
+    image={pizza.image}
+        />
+      ))}
+    </div>
+      </section>    
     </main>
     
   );
@@ -75,7 +84,7 @@ export function CardCarousel() {
   }, []);
 
   return (
-    <section className="py-12 bg-[hsl(220deg_13.04%_90.98%)]">
+    <section className="py-12 ">
       <h2 className="mb-6 text-center text-3xl font-bold ">
         Destaques
       </h2>

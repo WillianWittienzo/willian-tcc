@@ -1,18 +1,24 @@
-import CardItem from "./CardItem";
-import { cardapio} from "@/components/data/cardapio";
+import { Card, cardapio } from "../data/cardapio";
 import Image from "next/image";
+import {CardItem} from "./CardItem";
 
-export default function CardList(){
-  return(
+type CardListProps = {
+  items: Card[];
+};
+
+export function CardList({
+  items
+}: CardListProps) {
+  return (
     <div className="grid gap-6 md:grid-cols-3">
-      {cardapio.map((item) =>(
-          <CardItem
+      {items.map((item) => (
+        <CardItem
           key={item.id}
           nome={item.nome}
-          preco={item.preco}
           descricao={item.descricao}
+          preco={item.preco}
           image={item.image}
-          />
+        />
       ))}
     </div>
   );

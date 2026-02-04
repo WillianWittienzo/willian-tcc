@@ -8,7 +8,7 @@ type CardItemProps = {
 
 };
 
-export default function CardItem({ nome, preco, descricao, image}: CardItemProps) {
+export function CardItem({ nome, preco, descricao, image}: CardItemProps) {
   return (
     <div className="rounded-lg border p-6 shadow-sm">
       <Image
