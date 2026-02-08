@@ -30,9 +30,9 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex justify-center gap-4">
-              <Link href="/cardapio"className="rounded-lg bg-[hsl(33_100%_50%)] px-6 py-3 font-semibold text-black animate-pulse-glow">Peça Agora</Link>
+              <Link href="/cardapio" className="rounded-lg bg-[hsl(33_100%_50%)] px-6 py-3 font-semibold text-black animate-pulse-glow">Peça Agora</Link>
 
-              <Link href="/contato"className="rounded-lg border border-white px-6 py-3 font-semibold text-white hover:bg-white hover:text-black transition animate-pulse-glow">Conheça-nos</Link>
+              <Link href="/contato" className="rounded-lg border border-white px-6 py-3 font-semibold text-white hover:bg-white hover:text-black transition animate-pulse-glow">Conheça-nos</Link>
             </div>
           </div>
         </div>
@@ -40,24 +40,25 @@ export default function Home() {
       <CardCarousel />
 
       <section >
-        <div className= "bg-[hsl(30deg_20%_94.12%)]">
-        <h1 className="text-3xl md:text-3xl lg:text-3xl text-black text-center">PIZZAS<span className="text-[hsl(33_100%_50%)]"><span></span> POPULARES</span>
-            </h1>
-            </div>
-              <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 sm:grid-cols-2 md:grid-cols-3">
-      {cardapio.slice(0, 3).map((pizza) => (
-        <CardItemHome
-           key={pizza.id}
-    nome={pizza.nome}
-    descricao={pizza.descricao}
-    preco={pizza.preco}
-    image={pizza.image}
-        />
-      ))}
-    </div>
-      </section>    
+        <div className="bg-[hsl(30deg_20%_94.12%)]">
+          <h1 className=" text-[48px] text-black text-center -mt-">PIZZAS<span className="text-[hsl(33_100%_50%)]"><span></span> POPULARES</span>
+          </h1>
+        </div>
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 sm:grid-cols-2 md:grid-cols-3 bg-[hsl(30_20%_94%)]">
+          {cardapio.slice(0, 3).map((pizza) => (
+            <CardItemHome
+              key={pizza.id}
+              nome={pizza.nome}
+              descricao={pizza.descricao}
+              description={pizza.description}
+              preco={pizza.preco}
+              image={pizza.image}
+            />
+          ))}
+        </div>
+      </section>
     </main>
-    
+
   );
 }
 
@@ -72,11 +73,11 @@ export function CardCarousel() {
       const maxScroll =
         carousel.scrollWidth - carousel.clientWidth;
 
-     if (carousel.scrollLeft + 300 >= maxScroll) {
-  carousel.scrollTo({ left: 0, behavior: "smooth" });
-} else {
-  carousel.scrollBy({ left: 300, behavior: "smooth" });
-}
+      if (carousel.scrollLeft + 300 >= maxScroll) {
+        carousel.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        carousel.scrollBy({ left: 300, behavior: "smooth" });
+      }
 
     }, 3000);
 
@@ -84,31 +85,27 @@ export function CardCarousel() {
   }, []);
 
   return (
-    <section className="py-12 ">
-      <h2 className="mb-6 text-center text-3xl font-bold ">
-        Destaques
-      </h2>
 
+    // bg-[hsl(30_20%_94%)]
+    <section className="relative py-5 bg-gray-100">
       <div
-  ref={carouselRef}
-  className="mx-auto flex max-w-[900px] gap-6 overflow-x-hidden px-6 "
->
+        ref={carouselRef}
+        className="relative z-20 mx-auto -mt-12 max-w-800px  rounded-2xl bg-black/5 backdrop-blur-md shadow-xl px-6 py-8 flex gap-6 overflow-x-hidden ">
 
-        
         {cards.map((card, i) => (
-  <div
-    key={i}
-    className="min-w-[250px] rounded-lg  p-4 shadow"
-  >
-    <h3 className="text-lg font-bold ">
-      {card.titulo}
-    </h3>
+          <div
+            key={i}
+            className="min-w-250px rounded-lg p-10 shadow-sm"
+          >
+            <h3 className="text-lg font-bold ">
+              {card.titulo}
+            </h3>
 
-    <p className="mt-2 text-gray-600">
-      {card.subtitulo}
-    </p>
-  </div>
-))}
+            <p className="mt-2 text-gray-600">
+              {card.subtitulo}
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   );
