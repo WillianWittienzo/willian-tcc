@@ -11,9 +11,10 @@ type CardItemProps = {
 };
 export function CardItemHome({nome,  descricao, preco, image, description}:  CardItemProps) {
   return (
-    <div className="rounded-xl bg-white p-4 shadow relative">
-      <Image src={image} alt={nome} width={300} height={300} />
-      <div className="absolute top-5 left-5 bg-red-800/90 backdrop-blur-sm rounded-lg px-3 py-1">
+    <div className="rounded-xl bg-white p-4 shadow relative hover:-translate-y-1 transition-all duration-200
+ ">
+      <Image src={image} alt={nome} width={350} height={300} className="rounded-sm"/>
+      <div className="absolute top-5 left-5 bg-red-800/90 backdrop-blur-sm rounded-lg px-3 py-1 ">
     <p className="text-[13px] text-white leading-none">
       {descricao}
     </p>

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-
 export default function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -20,51 +20,85 @@ export default function Header() {
   return (
     <header
       className={`
-        fixed top-0 left-0 w-full z-50 transition-all duration-300 rounded-2x
-        ${scrolled
-          ? "bg-white/70 backdrop-blur-md shadow-md"
-          : "bg-white"}
+        fixed top-0 left-0 w-full z-50 transition-all duration-300
+        ${
+          scrolled
+            ? "bg-zinc-800/70 backdrop-blur-md shadow-md"
+            : "bg-zinc-800"
+        }
       `}
     >
-     <nav className="mx-auto flex max-w-6xl items-center px-8 py-4">
+      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 text-white">
+        <div className="flex items-center gap-2">
+          {/* LOGO */}
+          <Link href="/">
+          <Image
+            src="/logo.png/fogo3.png"
+            alt="Brasa Quente"
+            width={40}
+            height={40}
+          />
+          </Link>
 
-  {/* ESQUERDA: logo + menu */}
-  <div className="flex items-center gap-16">
-    {/* Logo */}
-    <div className="flex items-center gap-5">
-      <Image
-        src="/logo.png/fogo1.png"
-        alt="Brasa Quente"
-        width={40}
-        height={40}
-      />
-      <span className="font-display text-3xl tracking-wide text-red-700 whitespace-nowrap">
-  BRASA QUENTE
-</span>
+          <Link
+            href="/"
+            className="text-3xl font-bold tracking-widest uppercase text-red-600 hover:text-orange-500 transition"
+          >
+            Brasa Quente
+          </Link>
+        </div>
 
-    </div>
+        {/* BOTÃO MOBILE */}
+        <button
+          className="flex flex-col gap-2 md:hidden"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          <span
+            className={`h-0.5 w-8 bg-white transition ${
+              menuOpen ? "rotate-45 translate-y-2" : ""
+            }`}
+          />
+          <span
+            className={`h-0.5 w-8 bg-white transition ${
+              menuOpen ? "opacity-0" : ""
+            }`}
+          />
+          <span
+            className={`h-0.5 w-8 bg-white transition ${
+              menuOpen ? "-rotate-45 -translate-y-2" : ""
+            }`}
+          />
+        </button>
 
-    {/* Menu */}
-    <ul className="flex gap-10 text-[18px] ml-100">
-      <li><Link href="/">Início</Link></li>
-      <li><Link href="/cardapio">Cardápio</Link></li>
-      <li><Link href="/sobre">Sobre</Link></li>
-      <li><Link href="/contato">Contato</Link></li>
-    </ul>
-  </div>
+        {/* MENU DESKTOP */}
+        <ul className="hidden gap-8 md:flex text-[18px]">
+          <li><Link href="/">Início</Link></li>
+          <li><Link href="/cardapio">Cardápio</Link></li>
+          <li><Link href="/sobre">Sobre</Link></li>
+          <li><Link href="/contato">Contato</Link></li>
+          <li>
+            <Link
+              href="/compra"
+              className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition"
+            >
+              Compra
+            </Link>
+          </li>
+        </ul>
+      </nav>
 
-  {/* DIREITA: botão */}
-  <Link
-    href="/compra"
-    className="ml-18 rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition"
-  >
-    Compra
-  </Link>
-
-</nav>
-
-
-
+      {/* MENU MOBILE */}
+      <ul
+        className={`fixed right-0 top-16 h-screen w-1/2 bg-zinc-900 p-8 transition-transform md:hidden text-white 
+          ${menuOpen ? "translate-x-0" : "translate-x-full"}
+        `}
+      >
+        <li className="mb-6"><Link href="/">Início</Link></li>
+        <li className="mb-6"><Link href="/cardapio">Cardápio</Link></li>
+        <li className="mb-6"><Link href="/sobre">Sobre</Link></li>
+        <li className="mb-6"><Link href="/contato">Contato</Link></li>
+        <li><Link href="/compra" className="mb-6 text-red-600">Compra</Link></li>
+      </ul>
     </header>
   );
 }

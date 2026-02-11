@@ -102,7 +102,12 @@ export const cards = [
     subtitulo: "Só o melhor para você",
   },
   {
-    titulo: "",
-    subtitulo: "",
+    titulo: "Pizza Gratis",
+    subtitulo: "Se não entregar em 45min",
   },
+  {
+    titulo: "Açai 750ml",
+    subtitulo: "Na promoção de 15,00 por 13,99",
+  }
+
 ];
