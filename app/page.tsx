@@ -6,6 +6,7 @@ import { cards } from "@/components/data/cardapio";
 import { cardapio } from "@/components/data/cardapio";
 import { CardItemHome } from "@/components/cardapio/CardItemHome";
 import Image from "next/image";
+import { GoArrowRight } from "react-icons/go";
 
 
 
@@ -32,7 +33,7 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex justify-center gap-4">
-              <Link href="/cardapio" className="rounded-lg bg-[hsl(33_100%_50%)] px-6 py-3 font-semibold text-black animate-pulse-glow">Peça Agora</Link>
+              <Link href="/cardapio" className="rounded-lg bg-[hsl(33_100%_50%)] group flex items-center gap-2 px-6 py-3 font-semibold text-black animate-pulse-glow">Peça Agora <GoArrowRight size={22} className="transition-transform duration-300 group-hover:translate-x-1"/> </Link>
 
               <Link href="/contato" className="rounded-lg border border-white px-6 py-3 font-semibold text-white hover:bg-white hover:text-black transition animate-pulse-glow">Conheça-nos</Link>
             </div>
@@ -63,14 +64,8 @@ export default function Home() {
 
         <div className="py-10 flex justify-center">
           <Link
-            href="/cardapio" className="group flex items-center gap-2 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white hover:bg-red-700 transition duration-300"><span>Ver Cardápio</span>
-            <Image
-              src="/logo.png/arrow-right.png"
-              alt="seta"
-              width={18}
-              height={18}
-              className="transition-transform duration-300 group-hover:translate-x-1"
-            />
+            href="/cardapio" className="animate-pulse-glow group flex items-center gap-2 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white hover:bg-red-700 transition duration-300"><span>Ver Cardápio</span>
+           <GoArrowRight size={22} className="transition-transform duration-300 group-hover:translate-x-1"/>
           </Link>
         </div>
       </section>
