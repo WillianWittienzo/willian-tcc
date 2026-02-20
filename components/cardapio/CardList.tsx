@@ -15,9 +15,10 @@ export function CardList({
         <CardItem
           key={item.id}
           nome={item.nome}
-          descricao={item.descricao}
+          categoria={item.categoria}
           preco={item.preco}
           image={item.image}
+          description={item.description}
         />
       ))}
     </div>

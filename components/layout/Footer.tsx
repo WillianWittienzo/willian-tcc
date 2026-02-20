@@ -1,4 +1,4 @@
-import { GoArrowRight } from "react-icons/go";
+
 import { FaInstagram } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa";
 import { CiClock2 } from "react-icons/ci";
@@ -54,7 +54,7 @@ export default function Footer() {
 
         </div>
       </div>
-      <div className="border-t mt-3 border-t border-[hsl(26.67deg_14.75%_88.04%)]">
+      <div className="mt-3 border-t border-[hsl(26.67deg_14.75%_88.04%)]">
         <h1 className="ml-8 text-sm text-gray-500 mt-2">© 2025 Brasa Quente Todos os direitos reservados.</h1>
       </div>
     </footer>

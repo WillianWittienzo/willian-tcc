@@ -49,15 +49,15 @@ export default function Home() {
         </div>
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 sm:grid-cols-2 md:grid-cols-3 bg-[hsl(30_20%_94%)]  ">
           {cardapio.slice(0, 3).map((pizza) => (
-            <Link href="/compra"><CardItemHome
+            <CardItemHome
               key={pizza.id}
               nome={pizza.nome}
-              descricao={pizza.descricao}
+              categoria={pizza.categoria}
               description={pizza.description}
               preco={pizza.preco}
               image={pizza.image}
             />
-            </Link>
+           
 
           ))}
         </div>
