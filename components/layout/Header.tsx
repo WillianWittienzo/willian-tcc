@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { LuShoppingCart } from "react-icons/lu";
+import { useCart } from "@/app/context/CartContext";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -76,14 +78,8 @@ export default function Header() {
           <li><Link href="/cardapio">Cardápio</Link></li>
           <li><Link href="/sobre">Sobre</Link></li>
           <li><Link href="/contato">Contato</Link></li>
-          <li>
-            <Link
-              href="/compra"
-              className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition"
-            >
-              Compra
-            </Link>
-          </li>
+          <li><Link href="carrinho"><LuShoppingCart /></Link></li>
+          <li><Link href="/login"className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Entrar</Link></li>      
         </ul>
       </nav>
 
@@ -97,7 +93,7 @@ export default function Header() {
         <li className="mb-6"><Link href="/cardapio">Cardápio</Link></li>
         <li className="mb-6"><Link href="/sobre">Sobre</Link></li>
         <li className="mb-6"><Link href="/contato">Contato</Link></li>
-        <li><Link href="/compra" className="mb-6 text-red-600">Compra</Link></li>
+        <li><Link href="/login" className="mb-6 text-red-600">Entrar</Link></li>
       </ul>
     </header>
   );

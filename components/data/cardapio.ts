@@ -74,6 +74,7 @@ export const cardapio: Card[] = [
     preco: 39.90,
     categoria: 'Doce',
     image: 'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=500&h=500&fit=crop'
+    
   },
   {
     id: 9,
