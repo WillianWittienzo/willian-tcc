@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import "./globals.css";
 import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./context/AuthContext";
 
 export default function RootLayout({
   children,
@@ -12,11 +13,13 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
+        <AuthProvider>
         <CartProvider>
           <Header />
           {children}
           <Footer />
         </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

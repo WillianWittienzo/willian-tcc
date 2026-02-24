@@ -19,6 +19,11 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const { items } = useCart()
+  const totalItems = items.reduce(
+  (total, item) => total + item.quantidade,
+  0
+)
   return (
     <header
       className={`
@@ -78,7 +83,20 @@ export default function Header() {
           <li><Link href="/cardapio">Cardápio</Link></li>
           <li><Link href="/sobre">Sobre</Link></li>
           <li><Link href="/contato">Contato</Link></li>
-          <li><Link href="carrinho"><LuShoppingCart /></Link></li>
+          <li>
+  <Link href="/carrinho" className="relative">
+    <LuShoppingCart
+  size={22}
+  className={totalItems > 0 ? "text-red-500" : "text-white"}
+/>
+
+    {totalItems > 0 && (
+      <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+        {totalItems}
+      </span>
+    )}
+  </Link>
+</li>
           <li><Link href="/login"className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Entrar</Link></li>      
         </ul>
       </nav>
@@ -95,6 +113,7 @@ export default function Header() {
         <li className="mb-6"><Link href="/contato">Contato</Link></li>
         <li><Link href="/login" className="mb-6 text-red-600">Entrar</Link></li>
       </ul>
+      
     </header>
   );
 }

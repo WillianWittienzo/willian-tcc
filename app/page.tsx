@@ -35,7 +35,7 @@ export default function Home() {
             <div className="mt-8 flex justify-center gap-4">
               <Link href="/cardapio" className="rounded-lg bg-[hsl(33_100%_50%)] group flex items-center gap-2 px-6 py-3 font-semibold text-black animate-pulse-glow">Peça Agora <GoArrowRight size={22} className="transition-transform duration-300 group-hover:translate-x-1"/> </Link>
 
-              <Link href="/contato" className="rounded-lg border border-white px-6 py-3 font-semibold text-white hover:bg-white hover:text-black transition animate-pulse-glow">Conheça-nos</Link>
+              <Link href="/sobre" className="rounded-lg border border-white px-6 py-3 font-semibold text-white hover:bg-white hover:text-black transition animate-pulse-glow">Conheça-nos</Link>
             </div>
           </div>
         </div>
