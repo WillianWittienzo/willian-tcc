@@ -3,23 +3,39 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useAuth } from "../context/AuthContext"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
 
     const [email, setEmail] = useState("")
     const [senha, setSenha] = useState("")
 
+    const { login } = useAuth()
+    const router = useRouter()
+
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
-        console.log("Email:", email)
-        console.log("Senha:", senha)
+
+        if (email === "admin@brasaquente.com" && senha === "admin123") {
+
+            login({
+                id: 1,
+                nome: "Administrador",
+                email: email
+            })
+
+            router.push("/admin")
+            return
+        }
+
+        alert("Credenciais inválidas")
     }
 
     return (
         <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
 
             <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-
 
                 <div className="flex justify-center mb-6">
                     <div className="bg-red-800 w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl">
@@ -32,7 +48,6 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-
                 <h1 className="text-3xl font-bold text-center mb-2">
                     BEM-VINDO
                 </h1>
@@ -40,7 +55,6 @@ export default function LoginPage() {
                 <p className="text-center text-gray-500 mb-6">
                     Faça login para continuar
                 </p>
-
 
                 <form onSubmit={handleSubmit} className="space-y-4">
 
@@ -82,9 +96,14 @@ export default function LoginPage() {
                         Cadastre-se
                     </Link>
                 </p>
-
+                <br />
+                    <h1 className="bg-blue-50 rounded-sm shadow-black">
+                    <p>admin@brasaquente.com</p>
+                    <p>admin123</p>
+                    
+                </h1>
             </div>
-
+                
         </main>
     )
 }

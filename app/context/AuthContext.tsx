@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, ReactNode } from "react"
+import { createContext, useContext, useState, ReactNode, useEffect } from "react"
 
 type User = {
   id: number
@@ -20,12 +20,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
 
+  // 🔥 AQUI FICA O useEffect
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user")
+
+    if (storedUser) {
+      setUser(JSON.parse(storedUser))
+    }
+  }, [])
+
   function login(userData: User) {
     setUser(userData)
+    localStorage.setItem("user", JSON.stringify(userData))
   }
 
   function logout() {
     setUser(null)
+    localStorage.removeItem("user")
   }
 
   return (
@@ -37,8 +48,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
+
   if (!context) {
     throw new Error("useAuth deve estar dentro do AuthProvider")
   }
+
   return context
 }

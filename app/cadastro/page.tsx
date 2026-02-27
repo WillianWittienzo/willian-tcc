@@ -89,6 +89,7 @@ export default function CadastroPage() {
                         Faça login
                     </Link>
                 </p>
+                
 
             </div>
 
