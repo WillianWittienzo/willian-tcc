@@ -17,18 +17,18 @@ export default function CarrinhoPage() {
   const router = useRouter()
   const { user } = useAuth()
   function handleCheckout() {
-  if (!user) {
-    router.push("/login")
-    return
-  }
+    if (!user) {
+      router.push("/login")
+      return
+    }
 
-  if (!user.endereco) {
-    router.push("/cadastro-endereco")
-    return
-  }
+    if (!user.endereco) {
+      router.push("/cadastro-endereco")
+      return
+    }
 
-  router.push("/checkout")
-}
+    router.push("/checkout")
+  }
   const { items, addToCart, decreaseQuantity, removeFromCart } = useCart()
 
   const subtotal = items.reduce(
@@ -42,7 +42,7 @@ export default function CarrinhoPage() {
   return (
     <div className="max-w-6xl mx-auto p-6 mt-20 grid md:grid-cols-3 gap-8">
 
-      {/* LISTA DE ITENS */}
+
       <div className="md:col-span-2 space-y-4">
         {items.length === 0 ? (
           <p className="text-center text-gray-500">
@@ -51,7 +51,7 @@ export default function CarrinhoPage() {
         ) : (
           items.map(item => (
             <div
-              key={item.id}
+              key={`${item.id}-${item.tamanho}`}
               className="bg-white p-4 rounded-xl shadow flex justify-between items-center"
             >
               <div className="flex gap-4 items-center">
@@ -65,15 +65,21 @@ export default function CarrinhoPage() {
 
                 <div>
                   <h2 className="font-bold">{item.nome}</h2>
+
+                  <p className="text-sm text-gray-500">
+                    Tamanho: {item.tamanho}
+                  </p>
+
                   <p className="text-sm text-gray-500">
                     R$ {item.preco.toFixed(2)}
                   </p>
 
-                  {/* CONTROLES */}
+
+
                   <div className="flex items-center gap-3 mt-2">
 
                     <button
-                      onClick={() => decreaseQuantity(item.id)}
+                      onClick={() => decreaseQuantity(item.id, item.tamanho)}
                       className="border border-red-500 text-red-500 w-8 h-8 rounded-lg"
                     >
                       -
@@ -88,6 +94,7 @@ export default function CarrinhoPage() {
                           nome: item.nome,
                           categoria: item.categoria,
                           preco: item.preco,
+                          tamanho: item.tamanho,
                           image: item.image,
                           description: item.description
                         })
@@ -98,7 +105,7 @@ export default function CarrinhoPage() {
                     </button>
 
                     <button
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => removeFromCart(item.id, item.tamanho)}
                       className="text-red-500 ml-2"
                     >
                       <LuTrash />
@@ -108,7 +115,7 @@ export default function CarrinhoPage() {
                 </div>
               </div>
 
-              {/* TOTAL DO ITEM */}
+
               <span className="font-semibold">
                 R$ {(item.preco * item.quantidade).toFixed(2)}
               </span>
@@ -117,7 +124,6 @@ export default function CarrinhoPage() {
         )}
       </div>
 
-      {/* RESUMO */}
       <div className="bg-white p-6 rounded-xl shadow h-fit">
         <h2 className="text-lg font-bold mb-4">Resumo</h2>
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Card, Categoria, cardapio } from "@/components/data/cardapio"
+import { Card, Categoria, cardapio, } from "@/components/data/cardapio"
 
 export default function AdminProdutos() {
 
@@ -10,7 +10,9 @@ export default function AdminProdutos() {
 
     const [nome, setNome] = useState("")
     const [descricao, setDescricao] = useState("")
-    const [preco, setPreco] = useState("")
+    const [precoPequena, setPrecoPequena] = useState("")
+    const [precoMedia, setPrecoMedia] = useState("")
+    const [precoGrande, setPrecoGrande] = useState("")
     const [image, setImage] = useState("")
     const [categoria, setCategoria] = useState<Categoria>("Tradicional")
 
@@ -25,16 +27,22 @@ export default function AdminProdutos() {
             id: Date.now(),
             nome,
             description: descricao,
-            preco: Number(preco),
             categoria,
-            image
+            image,
+            tamanhos: [
+                { nome: "Pequena", preco: Number(precoPequena) },
+                { nome: "Média", preco: Number(precoMedia) },
+                { nome: "Grande", preco: Number(precoGrande) }
+            ]
         }
 
         setProdutos(prev => [...prev, novoProduto])
 
         setNome("")
         setDescricao("")
-        setPreco("")
+        setPrecoPequena("")
+        setPrecoMedia("")
+        setPrecoGrande("")
         setImage("")
         setCategoria("Tradicional")
 
@@ -56,7 +64,7 @@ export default function AdminProdutos() {
             </div>
 
             {modalAberto && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
                     <div className="bg-white w-full max-w-md rounded-xl p-6 relative">
 
@@ -75,10 +83,9 @@ export default function AdminProdutos() {
                             onSubmit={adicionarProduto}
                             className="space-y-3"
                         >
-
-                            <input
-                                type="text"
-                                placeholder="Nome da pizza"
+                            
+                                <textarea
+                                placeholder="Nome da Pizza"
                                 value={nome}
                                 onChange={(e) => setNome(e.target.value)}
                                 className="w-full border p-2 rounded-md"
@@ -93,14 +100,6 @@ export default function AdminProdutos() {
                                 required
                             />
 
-                            <input
-                                type="number"
-                                placeholder="Preço"
-                                value={preco}
-                                onChange={(e) => setPreco(e.target.value)}
-                                className="w-full border p-2 rounded-md"
-                                required
-                            />
 
                             <select
                                 value={categoria}
@@ -112,15 +111,33 @@ export default function AdminProdutos() {
                                 <option value="Doce">Doce</option>
                             </select>
 
-                            <input
-                                type="text"
-                                placeholder="URL da imagem"
-                                value={image}
-                                onChange={(e) => setImage(e.target.value)}
+                             <input
+                                type="number"
+                                placeholder="Preço Pequena"
+                                value={precoPequena}
+                                onChange={(e) => setPrecoPequena(e.target.value)}
                                 className="w-full border p-2 rounded-md"
                                 required
                             />
 
+                            <input
+                                type="number"
+                                placeholder="Preço Grande"
+                                value={precoGrande}
+                                onChange={(e) => setPrecoGrande(e.target.value)}
+                                className="w-full border p-2 rounded-md"
+                                required
+                            />
+
+                             <input
+                                type="number"
+                                placeholder="Preço Média"
+                                value={precoMedia}
+                                onChange={(e) => setPrecoMedia(e.target.value)}
+                                className="w-full border p-2 rounded-md"
+                                required
+                            />
+                           
                             <div className="flex justify-end gap-2">
                                 <button
                                     type="button"
@@ -149,46 +166,48 @@ export default function AdminProdutos() {
 
                 {produtos.map(produto => (
                     <div
-  key={produto.id}
-  className="relative bg-white rounded-xl shadow-md overflow-hidden"
->
+                        key={produto.id}
+                        className="relative bg-white rounded-xl shadow-md overflow-hidden"
+                    >
 
-  <div className="relative">
-    <img
-      src={produto.image}
-      alt={produto.nome}
-      className="w-full h-40 object-cover"
-    />
+                        <div className="relative">
+                            <img
+                                src={produto.image}
+                                alt={produto.nome}
+                                className="w-full h-40 object-cover"
+                            />
 
-    <div className="absolute top-3 left-3 z-10 bg-red-800/90 backdrop-blur-sm rounded-lg px-3 py-1">
-      <p className="text-[13px] text-white leading-none">
-        {produto.categoria}
-      </p>
-    </div>
-  </div>
+                            <div className="absolute top-3 left-3 z-10 bg-red-800/90 backdrop-blur-sm rounded-lg px-3 py-1">
+                                <p className="text-[13px] text-white leading-none">
+                                    {produto.categoria}
+                                </p>
+                            </div>
+                        </div>
 
-  <div className="p-4">
-    <h3 className="text-xl font-semibold">
-      {produto.nome}
-    </h3>
+                        <div className="p-4">
+                            <h3 className="text-xl font-semibold">
+                                {produto.nome}
+                            </h3>
 
-    <p className="text-gray-600 text-sm mb-2">
-      {produto.description}
-    </p>
+                            <p className="text-gray-600 text-sm mb-2">
+                                {produto.description}
+                            </p>
 
-    <p className="font-bold text-red-700 mb-3">
-      R$ {produto.preco.toFixed(2)}
-    </p>
+                            <p className="font-bold text-red-700 mb-3">
+                                <p className="font-bold text-red-700 mb-3">
+                                    Pequena: R$ {produto.tamanhos[0].preco.toFixed(2)}
+                                </p>
+                            </p>
 
-    <button
-      onClick={() => excluirProduto(produto.id)}
-      className="bg-gray-200 px-3 py-1 rounded-md hover:bg-gray-300 transition"
-    >
-      Excluir
-    </button>
-  </div>
+                            <button
+                                onClick={() => excluirProduto(produto.id)}
+                                className="bg-gray-200 px-3 py-1 rounded-md hover:bg-gray-300 transition "
+                            >
+                                Excluir
+                            </button>
+                        </div>
 
-</div>
+                    </div>
                 ))}
 
             </div>

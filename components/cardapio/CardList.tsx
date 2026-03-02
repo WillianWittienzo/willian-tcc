@@ -15,7 +15,7 @@ export function CardList({ items }: CardListProps) {
           id={item.id} 
           nome={item.nome}
           categoria={item.categoria}
-          preco={item.preco}
+          tamanhos={item.tamanhos}
           image={item.image}
           description={item.description}
         />

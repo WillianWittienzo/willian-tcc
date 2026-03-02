@@ -33,7 +33,7 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex justify-center gap-4">
-              <Link href="/cardapio" className="rounded-lg bg-[hsl(33_100%_50%)] group flex items-center gap-2 px-6 py-3 font-semibold text-black animate-pulse-glow">Peça Agora <GoArrowRight size={22} className="transition-transform duration-300 group-hover:translate-x-1"/> </Link>
+              <Link href="/cardapio" className="rounded-lg bg-[hsl(33_100%_50%)] group flex items-center gap-2 px-6 py-3 font-semibold text-black animate-pulse-glow">Peça Agora <GoArrowRight size={22} className="transition-transform duration-300 group-hover:translate-x-1" /> </Link>
 
               <Link href="/sobre" className="rounded-lg border border-white px-6 py-3 font-semibold text-white hover:bg-white hover:text-black transition animate-pulse-glow">Conheça-nos</Link>
             </div>
@@ -43,29 +43,27 @@ export default function Home() {
       <CardCarousel />
 
       <section >
-        <div className="bg-[hsl(30deg_20%_94.12%)]">
+        <div className="">
           <h1 className=" text-[48px] text-black text-center -mt-">PIZZAS<span className="text-[hsl(33_100%_50%)]"><span></span> POPULARES</span>
           </h1>
         </div>
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-6 sm:grid-cols-2 md:grid-cols-3 bg-[hsl(30_20%_94%)]  ">
+        <div className="mx-auto grid  grid-cols-1 gap-6 px-6 sm:grid-cols-2 md:grid-cols-3 ">
           {cardapio.slice(0, 3).map((pizza) => (
             <CardItemHome
               key={pizza.id}
               nome={pizza.nome}
               categoria={pizza.categoria}
               description={pizza.description}
-              preco={pizza.preco}
+              tamanhos={pizza.tamanhos}
               image={pizza.image}
             />
-           
-
           ))}
         </div>
 
         <div className="py-10 flex justify-center">
           <Link
             href="/cardapio" className="animate-pulse-glow group flex items-center gap-2 rounded-lg bg-red-600 px-6 py-3 font-semibold text-white hover:bg-red-700 transition duration-300"><span>Ver Cardápio</span>
-           <GoArrowRight size={22} className="transition-transform duration-300 group-hover:translate-x-1"/>
+            <GoArrowRight size={22} className="transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </div>
       </section>
@@ -76,7 +74,7 @@ export default function Home() {
 }
 export function CardCarousel() {
   return (
-    <section className="relative py-10 bg-gray-100 ">
+    <section className="relative py-10 bg-gradient-to-b from-orange-300 via-red-30 to-white">
       <div className="mx-auto grid max-w-[900px] grid-cols-1 gap-6 px-6 sm:grid-cols-2 md:grid-cols-3">
 
         {cards.map((card, i) => (

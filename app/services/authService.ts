@@ -1,4 +1,3 @@
-// services/authService.ts
 
 export type User = {
   id: number

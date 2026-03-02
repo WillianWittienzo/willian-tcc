@@ -41,7 +41,8 @@ export default function ContatoPage() {
       </section>
 
 
-      <div className="grid gap-12 lg:grid-cols-2">
+      <div className="flex justify-center lg:justify-end px-5 py-5">
+          <div className="rounded-xl bg-white p-4 shadow relative hover:-translate-y-1 transition-all duration-200">
           <div className="container">
             <div className="py-10">
               <h2 className="font-display text-3xl text-foreground">
@@ -68,6 +69,8 @@ export default function ContatoPage() {
               </div>
             </div>
         </div>
+        </div>
+
 
         <div className="flex justify-center lg:justify-end px-5 py-5">
           <div className="rounded-xl bg-white p-4 shadow relative hover:-translate-y-1 transition-all duration-200">
