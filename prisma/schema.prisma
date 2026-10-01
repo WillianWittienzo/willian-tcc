@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Categoria {
+  Tradicional
+  Especial
+  Doce
+}
+
+enum NomeTamanho {
+  Pequena
+  Media
+  Grande
+}
+
+model Produto {
+  id          Int              @id @default(autoincrement())
+  nome        String
+  categoria   Categoria
+  description String
+  image       String
+  tamanhos    ProdutoTamanho[]
+}
+
+model ProdutoTamanho {
+  id        Int         @id @default(autoincrement())
+  produtoId Int
+  nome      NomeTamanho
+  preco     Decimal     @db.Decimal(10, 2)
+  ordem     Int
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@unique([produtoId, nome])
+}
