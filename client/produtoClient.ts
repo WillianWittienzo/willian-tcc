@@ -49,3 +49,22 @@ export async function excluirProduto(id: number): Promise<void> {
     throw new Error("Erro ao excluir produto");
   }
 }
+
+export async function atualizarProduto(
+  id: number,
+  data: CriarProdutoData
+): Promise<Card> {
+  const response = await fetch(`/api/produtos/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error("Erro ao atualizar produto");
+  }
+
+  return response.json();
+}

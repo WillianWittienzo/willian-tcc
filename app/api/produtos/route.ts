@@ -1,23 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { produtoController } from "@/server/controllers/produtoController";
 
+export async function GET() {
+  const resultado = await produtoController.listarTodos();
 
-export async function DELETE(
-  _request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  const { id } = await context.params;
+  return NextResponse.json(resultado.data, {
+    status: resultado.status,
+  });
+}
 
-  const produtoId = Number(id);
-
-  if (!Number.isInteger(produtoId) || produtoId <= 0) {
-    return NextResponse.json(
-      { erro: "ID do produto inválido" },
-      { status: 400 }
-    );
-  }
-
-  const resultado = await produtoController.excluir(produtoId);
+export async function POST(request: NextRequest) {
+  const data = await request.json();
+  const resultado = await produtoController.criar(data);
 
   return NextResponse.json(resultado.data, {
     status: resultado.status,

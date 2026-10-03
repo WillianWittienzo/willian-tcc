@@ -5,6 +5,7 @@ import type { Card, Categoria } from "@/components/data/cardapio"
 import {
     listarProdutos,
     criarProduto,
+    atualizarProduto,
     excluirProduto
 } from "@/client/produtoClient"
 
@@ -12,6 +13,7 @@ export default function AdminProdutos() {
 
     const [produtos, setProdutos] = useState<Card[]>([])
     const [modalAberto, setModalAberto] = useState(false)
+    const [produtoEmEdicao, setProdutoEmEdicao] = useState<number | null>(null)
 
     const [nome, setNome] = useState("")
     const [descricao, setDescricao] = useState("")
@@ -35,26 +37,57 @@ export default function AdminProdutos() {
         carregarProdutos()
     }, [])
 
-    // Por enquanto exclui apenas da tela.
-    // Depois vamos conectar ao DELETE da API.
-   async function removerProduto(id: number) {
-    try {
-        await excluirProduto(id)
+    async function removerProduto(id: number) {
+        try {
+            await excluirProduto(id)
 
-        setProdutos(prev =>
-            prev.filter(produto => produto.id !== id)
-        )
-    } catch (error) {
-        console.error("Erro ao excluir produto:", error)
+            setProdutos(prev =>
+                prev.filter(produto => produto.id !== id)
+            )
+        } catch (error) {
+            console.error("Erro ao excluir produto:", error)
+        }
     }
-}
 
-    // Cadastra um novo produto no banco
+    function limparFormulario() {
+        setNome("")
+        setDescricao("")
+        setPrecoPequena("")
+        setPrecoMedia("")
+        setPrecoGrande("")
+        setImage("")
+        setCategoria("Tradicional")
+        setProdutoEmEdicao(null)
+    }
+
+    function fecharModal() {
+        setModalAberto(false)
+        limparFormulario()
+    }
+
+    function abrirNovoProduto() {
+        limparFormulario()
+        setModalAberto(true)
+    }
+
+    function editarProduto(produto: Card) {
+        setProdutoEmEdicao(produto.id)
+        setNome(produto.nome)
+        setDescricao(produto.description)
+        setCategoria(produto.categoria)
+        setImage(produto.image)
+        setPrecoPequena(String(produto.tamanhos.find(t => t.nome === "Pequena")?.preco ?? ""))
+        setPrecoMedia(String(produto.tamanhos.find(t => t.nome === "Média")?.preco ?? ""))
+        setPrecoGrande(String(produto.tamanhos.find(t => t.nome === "Grande")?.preco ?? ""))
+        setModalAberto(true)
+    }
+
+    // Cadastra um novo produto ou atualiza um existente no banco
     async function adicionarProduto(e: React.FormEvent) {
         e.preventDefault()
 
         try {
-            const novoProduto = await criarProduto({
+            const dadosProduto: Parameters<typeof criarProduto>[0] = {
                 nome,
                 description: descricao,
                 categoria,
@@ -73,25 +106,22 @@ export default function AdminProdutos() {
                         preco: Number(precoGrande)
                     }
                 ]
-            })
+            }
 
-            // Produto retornado pelo banco é colocado na tela
-            setProdutos(prev => [...prev, novoProduto])
+            if (produtoEmEdicao !== null) {
+                const produtoAtualizado = await atualizarProduto(produtoEmEdicao, dadosProduto)
+                setProdutos(prev => prev.map(produto =>
+                    produto.id === produtoEmEdicao ? produtoAtualizado : produto
+                ))
+            } else {
+                const novoProduto = await criarProduto(dadosProduto)
+                setProdutos(prev => [...prev, novoProduto])
+            }
 
-            // Limpa o formulário
-            setNome("")
-            setDescricao("")
-            setPrecoPequena("")
-            setPrecoMedia("")
-            setPrecoGrande("")
-            setImage("")
-            setCategoria("Tradicional")
-
-            // Fecha o modal
-            setModalAberto(false)
+            fecharModal()
 
         } catch (error) {
-            console.error("Erro ao cadastrar produto:", error)
+            console.error("Erro ao salvar produto:", error)
         }
     }
 
@@ -105,7 +135,7 @@ export default function AdminProdutos() {
                 </h1>
 
                 <button
-                    onClick={() => setModalAberto(true)}
+                    onClick={abrirNovoProduto}
                     className="bg-red-700 text-white px-4 py-2 rounded-md hover:bg-red-800 transition"
                 >
                     + Adicionar Produto
@@ -120,14 +150,14 @@ export default function AdminProdutos() {
                     <div className="bg-white w-full max-w-md rounded-xl p-6 relative">
 
                         <button
-                            onClick={() => setModalAberto(false)}
+                            onClick={fecharModal}
                             className="absolute top-3 right-3 text-gray-500"
                         >
                             ✕
                         </button>
 
                         <h2 className="text-2xl font-bold mb-4">
-                            Nova Pizza
+                            {produtoEmEdicao !== null ? "Editar Pizza" : "Nova Pizza"}
                         </h2>
 
                         <form
@@ -227,7 +257,7 @@ export default function AdminProdutos() {
 
                                 <button
                                     type="button"
-                                    onClick={() => setModalAberto(false)}
+                                    onClick={fecharModal}
                                     className="px-4 py-2 border rounded-md"
                                 >
                                     Cancelar
@@ -237,7 +267,7 @@ export default function AdminProdutos() {
                                     type="submit"
                                     className="px-4 py-2 bg-red-700 text-white rounded-md"
                                 >
-                                    Adicionar
+                                    {produtoEmEdicao !== null ? "Salvar" : "Adicionar"}
                                 </button>
 
                             </div>
@@ -291,12 +321,21 @@ export default function AdminProdutos() {
                                 Pequena: R$ {produto.tamanhos[0].preco.toFixed(2)}
                             </p>
 
-                            <button
-                                onClick={() => removerProduto(produto.id)}
-                                className="bg-gray-200 px-3 py-1 rounded-md hover:bg-gray-300 transition"
-                            >
-                                Excluir
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => editarProduto(produto)}
+                                    className="bg-red-700 text-white px-3 py-1 rounded-md hover:bg-red-800 transition"
+                                >
+                                    Editar
+                                </button>
+
+                                <button
+                                    onClick={() => removerProduto(produto.id)}
+                                    className="bg-gray-200 px-3 py-1 rounded-md hover:bg-gray-300 transition"
+                                >
+                                    Excluir
+                                </button>
+                            </div>
 
                         </div>
 

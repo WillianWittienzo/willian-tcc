@@ -21,7 +21,7 @@ export const produtoController = {
     }
   },
 
-  async criar(data: any) {
+  async criar(data: Parameters<typeof produtoService.criar>[0]) {
     try {
       const produto = await produtoService.criar(data);
 
@@ -37,6 +37,24 @@ export const produtoController = {
         data: {
           erro: "Erro ao cadastrar produto",
         },
+      };
+    }
+  },
+
+  async atualizar(
+    id: number,
+    data: Parameters<typeof produtoService.atualizar>[1]
+  ) {
+    try {
+      const produto = await produtoService.atualizar(id, data);
+
+      return { status: 200, data: produto };
+    } catch (error) {
+      console.error("Erro ao atualizar produto:", error);
+
+      return {
+        status: 500,
+        data: { erro: "Erro ao atualizar produto" },
       };
     }
   },
