@@ -4,32 +4,40 @@ import Image from "next/image"
 import { useCart } from "@/app/context/CartContext"
 import { LuTrash } from "react-icons/lu"
 import Link from "next/link"
-
-
-import { useRouter } from "next/navigation"
-import { useAuth } from "../context/AuthContext"
-
-
-
-
+import { useState } from "react"
+import { criarPedido } from "@/client/pedidoClient"
 
 export default function CarrinhoPage() {
-  const router = useRouter()
-  const { user } = useAuth()
-  function handleCheckout() {
-    if (!user) {
-      router.push("/login")
+  const [finalizando, setFinalizando] = useState(false)
+  const { items, addToCart, decreaseQuantity, removeFromCart, clearCart } = useCart()
+
+  async function handleCheckout() {
+    if (items.length === 0 || finalizando) {
       return
     }
 
-    if (!user.endereco) {
-      router.push("/cadastro-endereco")
-      return
-    }
+    setFinalizando(true)
 
-    router.push("/checkout")
+    try {
+      const pedido = await criarPedido({
+        itens: items.map((item) => ({
+          produtoId: item.id,
+          tamanho: item.tamanho,
+          quantidade: item.quantidade,
+        })),
+      })
+
+      clearCart()
+      alert(`Pedido #${pedido.id} realizado com sucesso!`)
+    } catch (error) {
+      const mensagem =
+        error instanceof Error ? error.message : "Erro ao finalizar pedido"
+      console.error("Erro ao finalizar pedido:", error)
+      alert(mensagem)
+    } finally {
+      setFinalizando(false)
+    }
   }
-  const { items, addToCart, decreaseQuantity, removeFromCart } = useCart()
 
   const subtotal = items.reduce(
     (total, item) => total + item.preco * item.quantidade,
@@ -144,8 +152,12 @@ export default function CarrinhoPage() {
           </span>
         </div>
 
-        <button onClick={handleCheckout} className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition  hover:scale-105">
-          Finalizar Pedido
+        <button
+          onClick={handleCheckout}
+          disabled={items.length === 0 || finalizando}
+          className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+        >
+          {finalizando ? "Finalizando..." : "Finalizar Pedido"}
         </button>
         <Link href="/cardapio" className="block mt-6 w-full  text-black py-2 bg-yellow-600 rounded-lg transition duration-300 hover:bg-yellow-500  hover:scale-105 text-center"> Continuar comprando</Link>
 

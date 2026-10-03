@@ -24,6 +24,14 @@ enum NomeTamanho {
   Grande
 }
 
+enum StatusPedido {
+  Pendente
+  EmPreparo
+  SaiuParaEntrega
+  Entregue
+  Cancelado
+}
+
 model Produto {
   id          Int              @id @default(autoincrement())
   nome        String
@@ -31,6 +39,7 @@ model Produto {
   description String
   image       String
   tamanhos    ProdutoTamanho[]
+  itensPedido ItemPedido[]
 }
 
 model ProdutoTamanho {
@@ -43,4 +52,32 @@ model ProdutoTamanho {
   produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
 
   @@unique([produtoId, nome])
+}
+
+model Pedido {
+  id          Int          @id @default(autoincrement())
+  clienteId   Int?
+  valorTotal  Decimal      @db.Decimal(10, 2)
+  taxaEntrega Decimal      @db.Decimal(10, 2)
+  status      StatusPedido @default(Pendente)
+  criadoEm    DateTime     @default(now())
+  itens       ItemPedido[]
+
+  @@index([clienteId])
+}
+
+model ItemPedido {
+  id            Int         @id @default(autoincrement())
+  pedidoId      Int
+  produtoId     Int?
+  nomeProduto   String
+  tamanho       NomeTamanho
+  quantidade    Int
+  precoUnitario Decimal     @db.Decimal(10, 2)
+
+  pedido  Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produto Produto? @relation(fields: [produtoId], references: [id], onDelete: SetNull)
+
+  @@index([pedidoId])
+  @@index([produtoId])
 }
