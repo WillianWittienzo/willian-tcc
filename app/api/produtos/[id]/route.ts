@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { produtoController } from "@/server/controllers/produtoController";
+import { verificarAdmin } from "@/server/auth/autorizacao";
 
 function obterProdutoId(id: string) {
   const produtoId = Number(id);
@@ -10,6 +11,9 @@ export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const bloqueio = await verificarAdmin(request);
+  if (bloqueio) return NextResponse.json({ erro: bloqueio.erro }, { status: bloqueio.status });
+
   const { id } = await context.params;
   const produtoId = obterProdutoId(id);
 
@@ -24,9 +28,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const bloqueio = await verificarAdmin(request);
+  if (bloqueio) return NextResponse.json({ erro: bloqueio.erro }, { status: bloqueio.status });
+
   const { id } = await context.params;
   const produtoId = obterProdutoId(id);
 

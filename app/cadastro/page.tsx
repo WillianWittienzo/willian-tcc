@@ -3,16 +3,31 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { cadastrar } from "@/client/authClient"
+import { useRouter } from "next/navigation"
 
 export default function CadastroPage() {
 
     const [nome, setNome] = useState("")
     const [email, setEmail] = useState("")
     const [senha, setSenha] = useState("")
+    const [erro, setErro] = useState("")
+    const [enviando, setEnviando] = useState(false)
+    const router = useRouter()
 
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
-        console.log(nome, email, senha)
+        setErro("")
+        setEnviando(true)
+
+        try {
+            await cadastrar({ nome, email, senha })
+            router.push("/login")
+        } catch (error) {
+            setErro(error instanceof Error ? error.message : "Erro ao cadastrar")
+        } finally {
+            setEnviando(false)
+        }
     }
 
     return (
@@ -40,6 +55,8 @@ export default function CadastroPage() {
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+
+                    {erro && <p className="text-red-700 text-sm">{erro}</p>}
 
                     <div>
                         <label className="block text-sm mb-1">Nome Completo</label>
@@ -76,9 +93,10 @@ export default function CadastroPage() {
 
                     <button
                         type="submit"
+                        disabled={enviando}
                         className="w-full bg-red-700 text-white py-3 rounded-md font-semibold hover:bg-red-800 transition"
                     >
-                        Criar Conta
+                        {enviando ? "Criando..." : "Criar Conta"}
                     </button>
 
                 </form>

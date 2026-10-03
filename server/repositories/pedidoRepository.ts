@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NomeTamanho, StatusPedido } from "@/app/generated/prisma/client";
 
 type CriarPedidoData = {
+  clienteId: number;
   valorTotal: number;
   taxaEntrega: number;
   itens: {
@@ -25,6 +26,16 @@ export const pedidoRepository = {
     });
   },
 
+  async listarDoCliente(clienteId: number) {
+    return prisma.pedido.findMany({
+      where: { clienteId },
+      include: {
+        itens: { orderBy: { id: "asc" } },
+      },
+      orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
+    });
+  },
+
   async buscarProdutosComTamanhos(produtoIds: number[]) {
     return prisma.produto.findMany({
       where: {
@@ -39,7 +50,7 @@ export const pedidoRepository = {
   async criar(data: CriarPedidoData) {
     return prisma.pedido.create({
       data: {
-        clienteId: null,
+        clienteId: data.clienteId,
         valorTotal: data.valorTotal,
         taxaEntrega: data.taxaEntrega,
         itens: {

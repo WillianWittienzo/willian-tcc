@@ -1,27 +1,16 @@
-"use client"
-
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "../context/AuthContext"
+import { redirect } from "next/navigation"
 import Sidebar from "@/components/adm/Sidebar"
 import Header from "@/components/layout/Header"
-export default function AdminLayout({
+import { usuarioAtual } from "@/server/auth/sessao"
+
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { user } = useAuth()
-  const router = useRouter()
-
-  useEffect(() => {
-    if (!user) {
-      router.push("/login")
-    }
-  }, [user, router])
-
-  if (!user) {
-    return null 
-  }
+  const usuario = await usuarioAtual()
+  if (!usuario) redirect("/login")
+  if (usuario.papel !== "Admin") redirect("/")
 
   return (
     <div className="flex h-screen bg-gray-100">

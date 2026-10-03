@@ -2,9 +2,20 @@
 
 import Link from "next/link"
 import { LayoutDashboard, ShoppingCart, Pizza, BarChart3, LogOut } from "lucide-react"
+import { useAuth } from "@/app/context/AuthContext"
+import { useRouter } from "next/navigation"
 
 
 export default function Sidebar() {
+  const { logout } = useAuth()
+  const router = useRouter()
+
+  async function sair() {
+    await logout()
+    router.push("/login")
+    router.refresh()
+  }
+
   return (
     <aside className="w-64 bg-red-700 text-white flex flex-col justify-between">
       
@@ -38,10 +49,10 @@ export default function Sidebar() {
 
       <div className="p-4 border-t border-red-600">
 
-        <Link href="/" className="flex items-center gap-2 w-full hover:text-gray-200">
-        <LogOut size={18} />
+        <button onClick={sair} className="flex items-center gap-2 w-full hover:text-gray-200">
+          <LogOut size={18} />
           Sair
-          </Link>
+        </button>
       </div>
     </aside>
   )

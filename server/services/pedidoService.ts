@@ -104,7 +104,12 @@ export const pedidoService = {
     return pedidos.map(formatarPedido);
   },
 
-  async criar(data: unknown) {
+  async listarDoCliente(clienteId: number) {
+    const pedidos = await pedidoRepository.listarDoCliente(clienteId);
+    return pedidos.map(formatarPedido);
+  },
+
+  async criar(clienteId: number, data: unknown) {
     const itensRecebidos = validarItens(data);
     const produtoIds = [...new Set(itensRecebidos.map((item) => item.produtoId))];
     const produtos = await pedidoRepository.buscarProdutosComTamanhos(produtoIds);
@@ -145,6 +150,7 @@ export const pedidoService = {
     });
 
     const pedido = await pedidoRepository.criar({
+      clienteId,
       taxaEntrega: TAXA_ENTREGA_EM_CENTAVOS / 100,
       valorTotal:
         (subtotalEmCentavos + TAXA_ENTREGA_EM_CENTAVOS) / 100,

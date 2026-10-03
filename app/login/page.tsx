@@ -14,22 +14,22 @@ export default function LoginPage() {
     const { login } = useAuth()
     const router = useRouter()
 
-    function handleSubmit(e: React.FormEvent) {
+    const [erro, setErro] = useState("")
+    const [enviando, setEnviando] = useState(false)
+
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
+        setErro("")
+        setEnviando(true)
 
-        if (email === "admin@brasaquente.com" && senha === "admin123") {
-
-            login({
-                id: 1,
-                nome: "Administrador",
-                email: email
-            })
-
-            router.push("/admin")
-            return
+        try {
+            const usuario = await login(email, senha)
+            router.push(usuario.papel === "Admin" ? "/admin" : "/cardapio")
+        } catch (error) {
+            setErro(error instanceof Error ? error.message : "Erro ao entrar")
+        } finally {
+            setEnviando(false)
         }
-
-        alert("Credenciais inválidas")
     }
 
     return (
@@ -58,6 +58,8 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
 
+                    {erro && <p className="text-red-700 text-sm">{erro}</p>}
+
                     <div>
                         <label className="block text-sm mb-1">E-mail</label>
                         <input
@@ -84,9 +86,10 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
+                        disabled={enviando}
                         className="w-full bg-red-700 text-white py-3 rounded-md font-semibold hover:bg-red-800 transition"
                     >
-                        Entrar
+                        {enviando ? "Entrando..." : "Entrar"}
                     </button>
                 </form>
 
@@ -96,12 +99,6 @@ export default function LoginPage() {
                         Cadastre-se
                     </Link>
                 </p>
-                <br />
-                    <h1 className="bg-blue-50 rounded-sm shadow-black">
-                    <p>admin@brasaquente.com</p>
-                    <p>admin123</p>
-                    
-                </h1>
             </div>
                 
         </main>

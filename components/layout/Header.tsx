@@ -5,10 +5,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { LuShoppingCart } from "react-icons/lu";
 import { useCart } from "@/app/context/CartContext";
+import { useAuth } from "@/app/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  async function sair() {
+    await logout();
+    router.push("/");
+    router.refresh();
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -97,7 +107,14 @@ export default function Header() {
     )}
   </Link>
 </li>
-          <li><Link href="/login"className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Entrar</Link></li>      
+          {user ? (
+            <>
+              <li><Link href="/pedidos">Meus Pedidos</Link></li>
+              <li><button onClick={sair} className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Sair</button></li>
+            </>
+          ) : (
+            <li><Link href="/login" className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Entrar</Link></li>
+          )}
         </ul>
       </nav>
 
@@ -111,7 +128,14 @@ export default function Header() {
         <li className="mb-6"><Link href="/cardapio">Cardápio</Link></li>
         <li className="mb-6"><Link href="/sobre">Sobre</Link></li>
         <li className="mb-6"><Link href="/contato">Contato</Link></li>
-        <li><Link href="/login" className="mb-6 text-red-600">Entrar</Link></li>
+        {user ? (
+          <>
+            <li className="mb-6"><Link href="/pedidos">Meus Pedidos</Link></li>
+            <li><button onClick={sair} className="text-red-600">Sair</button></li>
+          </>
+        ) : (
+          <li><Link href="/login" className="mb-6 text-red-600">Entrar</Link></li>
+        )}
       </ul>
       
     </header>

@@ -32,6 +32,11 @@ enum StatusPedido {
   Cancelado
 }
 
+enum PapelUsuario {
+  Cliente
+  Admin
+}
+
 model Produto {
   id          Int              @id @default(autoincrement())
   nome        String
@@ -62,8 +67,32 @@ model Pedido {
   status      StatusPedido @default(Pendente)
   criadoEm    DateTime     @default(now())
   itens       ItemPedido[]
+  cliente     Usuario?     @relation(fields: [clienteId], references: [id], onDelete: SetNull)
 
   @@index([clienteId])
+}
+
+model Usuario {
+  id        Int          @id @default(autoincrement())
+  nome      String
+  email     String       @unique
+  senhaHash String
+  papel     PapelUsuario @default(Cliente)
+  criadoEm  DateTime     @default(now())
+  pedidos   Pedido[]
+  sessoes   Sessao[]
+}
+
+model Sessao {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique
+  usuarioId Int
+  expiraEm  DateTime
+  criadoEm  DateTime @default(now())
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([expiraEm])
 }
 
 model ItemPedido {

@@ -20,9 +20,21 @@ export const pedidoController = {
     }
   },
 
-  async criar(data: unknown) {
+  async listarDoCliente(clienteId: number) {
     try {
-      const pedido = await pedidoService.criar(data);
+      return {
+        status: 200,
+        data: await pedidoService.listarDoCliente(clienteId),
+      };
+    } catch (error) {
+      console.error("Erro ao listar pedidos do cliente:", error);
+      return { status: 500, data: { erro: "Erro ao buscar seus pedidos" } };
+    }
+  },
+
+  async criar(clienteId: number, data: unknown) {
+    try {
+      const pedido = await pedidoService.criar(clienteId, data);
 
       return {
         status: 201,

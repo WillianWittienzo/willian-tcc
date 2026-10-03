@@ -45,6 +45,17 @@ export async function listarPedidos(): Promise<Pedido[]> {
   return response.json();
 }
 
+export async function listarMeusPedidos(): Promise<Pedido[]> {
+  const response = await fetch("/api/pedidos/meus");
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.erro ?? "Erro ao buscar seus pedidos");
+  }
+
+  return response.json();
+}
+
 export async function criarPedido(
   data: CriarPedidoData
 ): Promise<Pedido> {

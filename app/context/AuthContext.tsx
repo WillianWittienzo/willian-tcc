@@ -1,46 +1,41 @@
 "use client"
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react"
-
-type User = {
-  id: number
-  nome: string
-  email: string
-  endereco?: string
-}
+import * as authClient from "@/client/authClient"
+import type { Usuario } from "@/client/authClient"
 
 type AuthContextType = {
-  user: User | null
-  login: (user: User) => void
-  logout: () => void
+  user: Usuario | null
+  carregando: boolean
+  login: (email: string, senha: string) => Promise<Usuario>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-
+  const [user, setUser] = useState<Usuario | null>(null)
+  const [carregando, setCarregando] = useState(true)
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
+    authClient.buscarSessao()
+      .then(setUser)
+      .finally(() => setCarregando(false))
   }, [])
 
-  function login(userData: User) {
-    setUser(userData)
-    localStorage.setItem("user", JSON.stringify(userData))
+  async function login(email: string, senha: string) {
+    const usuario = await authClient.login(email, senha)
+    setUser(usuario)
+    return usuario
   }
 
-  function logout() {
+  async function logout() {
+    await authClient.logout()
     setUser(null)
-    localStorage.removeItem("user")
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, carregando, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
