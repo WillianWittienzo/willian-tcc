@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { LayoutDashboard, ShoppingCart, Pizza, BarChart3, LogOut } from "lucide-react"
+import { LayoutDashboard, ShoppingCart, Pizza, LogOut } from "lucide-react"
 import { useAuth } from "@/app/context/AuthContext"
 import { useRouter } from "next/navigation"
 
@@ -40,10 +40,6 @@ export default function Sidebar() {
             Produtos
           </Link>
 
-          <Link href="/admin/relatorios" className="flex items-center gap-2 p-2 rounded hover:bg-red-600">
-            <BarChart3 size={18} />
-            Relatórios
-          </Link>
         </nav>
       </div>
 

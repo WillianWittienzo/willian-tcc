@@ -1,84 +1,33 @@
-import { produtoService } from "@/server/services/produtoService";
+import { ProdutoInvalidoError, ProdutoNaoEncontradoError, produtoService } from "@/server/services/produtoService";
+
+function tratarErro(error: unknown, operacao: string) {
+  if (error instanceof ProdutoInvalidoError) return { status: 400, data: { erro: error.message } };
+  if (error instanceof ProdutoNaoEncontradoError) return { status: 404, data: { erro: error.message } };
+  console.error(`Erro ao ${operacao} produto:`, error);
+  return { status: 500, data: { erro: `Erro ao ${operacao} produto` } };
+}
 
 export const produtoController = {
   async listarTodos() {
     try {
-      const produtos = await produtoService.listarTodos();
-
-      return {
-        status: 200,
-        data: produtos,
-      };
+      return { status: 200, data: await produtoService.listarTodos() };
     } catch (error) {
       console.error("Erro ao listar produtos:", error);
-
-      return {
-        status: 500,
-        data: {
-          erro: "Erro ao buscar produtos",
-        },
-      };
+      return { status: 500, data: { erro: "Erro ao buscar produtos" } };
     }
   },
-
-  async criar(data: Parameters<typeof produtoService.criar>[0]) {
-    try {
-      const produto = await produtoService.criar(data);
-
-      return {
-        status: 201,
-        data: produto,
-      };
-    } catch (error) {
-      console.error("Erro ao cadastrar produto:", error);
-
-      return {
-        status: 500,
-        data: {
-          erro: "Erro ao cadastrar produto",
-        },
-      };
-    }
+  async criar(data: unknown) {
+    try { return { status: 201, data: await produtoService.criar(data) }; }
+    catch (error) { return tratarErro(error, "cadastrar"); }
   },
-
-  async atualizar(
-    id: number,
-    data: Parameters<typeof produtoService.atualizar>[1]
-  ) {
-    try {
-      const produto = await produtoService.atualizar(id, data);
-
-      return { status: 200, data: produto };
-    } catch (error) {
-      console.error("Erro ao atualizar produto:", error);
-
-      return {
-        status: 500,
-        data: { erro: "Erro ao atualizar produto" },
-      };
-    }
+  async atualizar(id: number, data: unknown) {
+    try { return { status: 200, data: await produtoService.atualizar(id, data) }; }
+    catch (error) { return tratarErro(error, "atualizar"); }
   },
-
   async excluir(id: number) {
     try {
       await produtoService.excluir(id);
-
-      return {
-        status: 200,
-        data: {
-          mensagem: "Produto excluído com sucesso",
-        },
-      };
-    } catch (error) {
-      console.error("Erro ao excluir produto:", error);
-
-      return {
-        status: 500,
-        data: {
-          erro: "Erro ao excluir produto",
-        },
-      };
-    }
+      return { status: 200, data: { mensagem: "Produto excluído com sucesso" } };
+    } catch (error) { return tratarErro(error, "excluir"); }
   },
-
 };

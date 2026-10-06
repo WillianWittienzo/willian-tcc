@@ -17,8 +17,7 @@ const produtos = [
     nome: "Margherita",
     description: "Molho de tomate, mussarela fresca, manjericão e azeite",
     categoria: Categoria.Tradicional,
-    image:
-      "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?w=500&h=500&fit=crop",
+    image: "/pizzas/margherita.jpg",
     tamanhos: [
       { nome: NomeTamanho.Pequena, preco: 35.44, ordem: 1 },
       { nome: NomeTamanho.Media, preco: 42.9, ordem: 2 },
@@ -29,8 +28,7 @@ const produtos = [
     nome: "Calabresa",
     description: "Calabresa fatiada, cebola, mussarela e orégano",
     categoria: Categoria.Tradicional,
-    image:
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&h=500&fit=crop",
+    image: "/pizzas/calabresa.jpg",
     tamanhos: [
       { nome: NomeTamanho.Pequena, preco: 35.44, ordem: 1 },
       { nome: NomeTamanho.Media, preco: 42.9, ordem: 2 },
@@ -41,8 +39,7 @@ const produtos = [
     nome: "Quatro Queijos",
     description: "Mussarela, provolone, gorgonzola e parmesão",
     categoria: Categoria.Especial,
-    image:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&h=500&fit=crop",
+    image: "/pizzas/quatro-queijos.jpg",
     tamanhos: [
       { nome: NomeTamanho.Pequena, preco: 36.45, ordem: 1 },
       { nome: NomeTamanho.Media, preco: 44.9, ordem: 2 },
@@ -53,8 +50,7 @@ const produtos = [
     nome: "Portuguesa",
     description: "Presunto, ovos, cebola, azeitonas, mussarela e ervilha",
     categoria: Categoria.Tradicional,
-    image:
-      "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&h=500&fit=crop",
+    image: "/pizzas/portuguesa.jpg",
     tamanhos: [
       { nome: NomeTamanho.Pequena, preco: 35.44, ordem: 1 },
       { nome: NomeTamanho.Media, preco: 42.9, ordem: 2 },
@@ -65,8 +61,7 @@ const produtos = [
     nome: "Frango com Catupiry",
     description: "Frango desfiado, catupiry, mussarela e milho",
     categoria: Categoria.Especial,
-    image:
-      "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=500&h=500&fit=crop",
+    image: "/pizzas/frango-catupiry.jpg",
     tamanhos: [
       { nome: NomeTamanho.Pequena, preco: 36.45, ordem: 1 },
       { nome: NomeTamanho.Media, preco: 44.9, ordem: 2 },
@@ -77,8 +72,7 @@ const produtos = [
     nome: "Pepperoni",
     description: "Pepperoni artesanal, mussarela e molho especial",
     categoria: Categoria.Especial,
-    image:
-      "https://images.unsplash.com/photo-1628840042765-356cda07504e?w=500&h=500&fit=crop",
+    image: "/pizzas/pepperoni.jpg",
     tamanhos: [
       { nome: NomeTamanho.Pequena, preco: 36.45, ordem: 1 },
       { nome: NomeTamanho.Media, preco: 44.9, ordem: 2 },
@@ -89,8 +83,7 @@ const produtos = [
     nome: "Chocolate com Morango",
     description: "Chocolate ao leite, morangos frescos e granulado",
     categoria: Categoria.Doce,
-    image:
-      "https://images.unsplash.com/photo-1481391032119-d89fee407e44?w=500&h=500&fit=crop",
+    image: "/pizzas/chocolate-morango.jpg",
     tamanhos: [
       { nome: NomeTamanho.Pequena, preco: 30.99, ordem: 1 },
       { nome: NomeTamanho.Media, preco: 40.99, ordem: 2 },
@@ -101,8 +94,7 @@ const produtos = [
     nome: "Banana com Canela",
     description: "Banana caramelizada, canela, leite condensado e açúcar",
     categoria: Categoria.Doce,
-    image:
-      "https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=500&h=500&fit=crop",
+    image: "/pizzas/banana-canela.jpg",
     tamanhos: [
       { nome: NomeTamanho.Pequena, preco: 35.44, ordem: 1 },
       { nome: NomeTamanho.Media, preco: 42.9, ordem: 2 },
@@ -113,8 +105,7 @@ const produtos = [
     nome: "Romeu e Julieta",
     description: "Goiabada cremosa, queijo minas derretido",
     categoria: Categoria.Doce,
-    image:
-      "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=500&h=500&fit=crop",
+    image: "/pizzas/romeu-julieta.jpg",
     tamanhos: [
       { nome: NomeTamanho.Pequena, preco: 35.44, ordem: 1 },
       { nome: NomeTamanho.Media, preco: 42.9, ordem: 2 },
@@ -126,26 +117,22 @@ const produtos = [
 async function main() {
   console.log("Iniciando seed...");
 
-  // Deixa o seed repetível durante o desenvolvimento.
-  await prisma.produtoTamanho.deleteMany();
-  await prisma.produto.deleteMany();
-
   for (const produto of produtos) {
-    await prisma.produto.create({
-      data: {
-        nome: produto.nome,
-        description: produto.description,
-        categoria: produto.categoria,
-        image: produto.image,
-
-        tamanhos: {
-          create: produto.tamanhos,
+    const existente = await prisma.produto.findFirst({ where: { nome: produto.nome } });
+    if (!existente) {
+      await prisma.produto.create({
+        data: {
+          nome: produto.nome,
+          description: produto.description,
+          categoria: produto.categoria,
+          image: produto.image,
+          tamanhos: { create: produto.tamanhos },
         },
-      },
-    });
+      });
+    }
   }
 
-  console.log("9 pizzas cadastradas com sucesso!");
+  console.log("Produtos iniciais ausentes cadastrados com sucesso!");
 }
 
 main()

@@ -1,5 +1,5 @@
+import { NomeBorda, NomeTamanho, StatusPedido } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
-import { NomeTamanho, StatusPedido } from "@/app/generated/prisma/client";
 
 type CriarPedidoData = {
   clienteId: number;
@@ -9,69 +9,37 @@ type CriarPedidoData = {
     produtoId: number;
     nomeProduto: string;
     tamanho: NomeTamanho;
+    borda: NomeBorda;
+    precoBorda: number;
     quantidade: number;
     precoUnitario: number;
   }[];
 };
 
+const incluirItens = { itens: { orderBy: { id: "asc" as const } } };
+
 export const pedidoRepository = {
-  async listarTodos() {
-    return prisma.pedido.findMany({
-      include: {
-        itens: {
-          orderBy: { id: "asc" },
-        },
-      },
-      orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
-    });
+  listarTodos() {
+    return prisma.pedido.findMany({ include: incluirItens, orderBy: [{ criadoEm: "desc" }, { id: "desc" }] });
   },
-
-  async listarDoCliente(clienteId: number) {
-    return prisma.pedido.findMany({
-      where: { clienteId },
-      include: {
-        itens: { orderBy: { id: "asc" } },
-      },
-      orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
-    });
+  listarDoCliente(clienteId: number) {
+    return prisma.pedido.findMany({ where: { clienteId }, include: incluirItens, orderBy: [{ criadoEm: "desc" }, { id: "desc" }] });
   },
-
-  async buscarProdutosComTamanhos(produtoIds: number[]) {
-    return prisma.produto.findMany({
-      where: {
-        id: { in: produtoIds },
-      },
-      include: {
-        tamanhos: true,
-      },
-    });
+  buscarProdutosComTamanhos(produtoIds: number[]) {
+    return prisma.produto.findMany({ where: { id: { in: produtoIds } }, include: { tamanhos: true } });
   },
-
-  async criar(data: CriarPedidoData) {
+  criar(data: CriarPedidoData) {
     return prisma.pedido.create({
       data: {
         clienteId: data.clienteId,
         valorTotal: data.valorTotal,
         taxaEntrega: data.taxaEntrega,
-        itens: {
-          create: data.itens,
-        },
+        itens: { create: data.itens },
       },
-      include: {
-        itens: true,
-      },
+      include: incluirItens,
     });
   },
-
-  async atualizarStatus(id: number, status: StatusPedido) {
-    return prisma.pedido.update({
-      where: { id },
-      data: { status },
-      include: {
-        itens: {
-          orderBy: { id: "asc" },
-        },
-      },
-    });
+  atualizarStatus(id: number, status: StatusPedido) {
+    return prisma.pedido.update({ where: { id }, data: { status }, include: incluirItens });
   },
 };

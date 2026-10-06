@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Brasa Quente
 
-## Getting Started
+Sistema de pizzaria desenvolvido com Next.js, Prisma e PostgreSQL. Inclui catálogo, carrinho, pedidos por cliente, painel administrativo, duas bordas fixas e promoções por produto.
 
-First, run the development server:
+## Desenvolvimento
+
+1. Configure `DATABASE_URL` em `.env`.
+2. Instale as dependências com `npm install`.
+3. Aplique migrations com `npx prisma migrate dev`.
+4. Gere o client com `npx prisma generate`.
+5. Inicie com `npm run dev`.
+
+O seed cadastra apenas produtos iniciais ausentes e não apaga pedidos ou produtos existentes.
+
+## Imagens de produtos
+
+As nove pizzas iniciais usam arquivos versionados em `public/pizzas`. No cadastro administrativo, a imagem pode ser definida por caminho público local (por exemplo, `/pizzas/minha-pizza.jpg`) ou por URL HTTPS.
+
+Não há upload binário persistente em produção: o filesystem da Vercel é efêmero. Para essa evolução, conecte um armazenamento externo (como Vercel Blob, Cloudinary ou S3), salve apenas a URL no campo existente e inclua o domínio no `remotePatterns` do Next.js quando a otimização de imagens for usada. Nenhuma credencial de armazenamento deve ser colocada no repositório.
+
+## Segurança
+
+- Sessão por cookie HttpOnly, Secure em produção e SameSite=Lax.
+- Autorização administrativa verificada no servidor.
+- Preços, promoções e acréscimos de borda calculados no backend.
+- Validação de origem em rotas mutáveis.
+- Limite local de tentativas de login. Em implantação com múltiplas instâncias, use um armazenamento distribuído para o rate limiting.
+
+## Verificações
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx prisma format
+npx prisma validate
+npx prisma migrate status
+npx tsc --noEmit
+npm run lint
+npm run build
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

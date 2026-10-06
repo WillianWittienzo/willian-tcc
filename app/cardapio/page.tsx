@@ -11,6 +11,7 @@ export default function CardapioPage() {
 
   const [produtos, setProdutos] = useState<Card[]>([]);
   const [categoriaAtiva, setCategoriaAtiva] = useState("Todas");
+  const [erro, setErro] = useState("");
 
   useEffect(() => {
     async function carregarProdutos() {
@@ -18,7 +19,7 @@ export default function CardapioPage() {
         const dados = await listarProdutos();
         setProdutos(dados);
       } catch (error) {
-        console.error("Erro ao carregar produtos:", error);
+        setErro(error instanceof Error ? error.message : "Erro ao carregar produtos");
       }
     }
 
@@ -53,7 +54,7 @@ export default function CardapioPage() {
             setCategoriaAtiva={setCategoriaAtiva}
           />
 
-          <CardList items={pizzasFiltradas} />
+          {erro ? <p className="rounded bg-red-100 p-4 text-center text-red-800">{erro}</p> : <CardList items={pizzasFiltradas} />}
         </div>
       </section>
     </main>

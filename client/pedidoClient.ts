@@ -2,6 +2,7 @@ export type CriarPedidoData = {
   itens: {
     produtoId: number;
     tamanho: "Pequena" | "Média" | "Grande";
+    borda: "Catupiry" | "Cheddar";
     quantidade: number;
   }[];
 };
@@ -21,6 +22,8 @@ export type ItemPedido = {
   produtoId: number | null;
   nomeProduto: string;
   tamanho: "Pequena" | "Média" | "Grande";
+  borda: "Catupiry" | "Cheddar" | null;
+  precoBorda: number;
   quantidade: number;
   precoUnitario: number;
 };

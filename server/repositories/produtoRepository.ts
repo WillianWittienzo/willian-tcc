@@ -1,57 +1,38 @@
-import { prisma } from "@/lib/prisma";
 import { Categoria, NomeTamanho } from "@/app/generated/prisma/client";
+import { prisma } from "@/lib/prisma";
 
 type ProdutoData = {
   nome: string;
   categoria: Categoria;
   description: string;
   image: string;
-  tamanhos: {
-    nome: NomeTamanho;
-    preco: number;
-    ordem: number;
-  }[];
+  descontoPercentual: number | null;
+  tamanhos: { nome: NomeTamanho; preco: number; ordem: number }[];
 };
 
-export const produtoRepository = {
-  async listarTodos() {
-    return prisma.produto.findMany({
-      include: {
-        tamanhos: {
-          orderBy: {
-            ordem: "asc",
-          },
-        },
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
-  },
+const incluirTamanhos = { tamanhos: { orderBy: { ordem: "asc" as const } } };
 
-  async criar(data: ProdutoData) {
+export const produtoRepository = {
+  listarTodos() {
+    return prisma.produto.findMany({ include: incluirTamanhos, orderBy: { id: "asc" } });
+  },
+  buscarPorId(id: number) {
+    return prisma.produto.findUnique({ where: { id }, include: incluirTamanhos });
+  },
+  criar(data: ProdutoData) {
     return prisma.produto.create({
       data: {
         nome: data.nome,
         categoria: data.categoria,
         description: data.description,
         image: data.image,
-
-        tamanhos: {
-          create: data.tamanhos,
-        },
+        descontoPercentual: data.descontoPercentual,
+        tamanhos: { create: data.tamanhos },
       },
-
-      include: {
-        tamanhos: {
-          orderBy: {
-            ordem: "asc",
-          },
-        },
-      },
+      include: incluirTamanhos,
     });
   },
-  async atualizar(id: number, data: ProdutoData) {
+  atualizar(id: number, data: ProdutoData) {
     return prisma.produto.update({
       where: { id },
       data: {
@@ -59,26 +40,19 @@ export const produtoRepository = {
         categoria: data.categoria,
         description: data.description,
         image: data.image,
+        descontoPercentual: data.descontoPercentual,
         tamanhos: {
           upsert: data.tamanhos.map((tamanho) => ({
-            where: {
-              produtoId_nome: { produtoId: id, nome: tamanho.nome },
-            },
+            where: { produtoId_nome: { produtoId: id, nome: tamanho.nome } },
             update: { preco: tamanho.preco, ordem: tamanho.ordem },
             create: tamanho,
           })),
         },
       },
-      include: {
-        tamanhos: { orderBy: { ordem: "asc" } },
-      },
+      include: incluirTamanhos,
     });
   },
-  async excluir(id: number) {
-    return prisma.produto.delete({
-      where: {
-        id,
-      },
-    });
+  excluir(id: number) {
+    return prisma.produto.delete({ where: { id } });
   },
 };

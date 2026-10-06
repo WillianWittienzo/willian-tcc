@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { pedidoController } from "@/server/controllers/pedidoController";
 import { usuarioDaRequisicao } from "@/server/auth/sessao";
 import { verificarAdmin } from "@/server/auth/autorizacao";
+import { requisicaoDeMesmaOrigem } from "@/server/auth/origem";
 
 export async function GET(request: NextRequest) {
   const bloqueio = await verificarAdmin(request);
@@ -15,6 +16,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!requisicaoDeMesmaOrigem(request)) {
+    return NextResponse.json({ erro: "Origem da requisição não permitida" }, { status: 403 });
+  }
   const usuario = await usuarioDaRequisicao(request);
   if (!usuario) {
     return NextResponse.json({ erro: "Autenticação necessária" }, { status: 401 });

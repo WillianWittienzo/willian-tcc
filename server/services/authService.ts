@@ -60,9 +60,9 @@ function validarCadastro(data: unknown) {
   const email = "email" in data && typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
   const senha = "senha" in data && typeof data.senha === "string" ? data.senha : "";
 
-  if (nome.length < 2 || !/^\S+@\S+\.\S+$/.test(email) || senha.length < 8) {
+  if (nome.length < 2 || nome.length > 100 || email.length > 254 || !/^\S+@\S+\.\S+$/.test(email) || senha.length < 8 || senha.length > 128) {
     throw new AuthDadosInvalidosError(
-      "Informe nome, email válido e senha com pelo menos 8 caracteres"
+      "Informe nome, email válido e senha entre 8 e 128 caracteres"
     );
   }
 
@@ -76,7 +76,9 @@ function validarLogin(data: unknown) {
 
   const email = "email" in data && typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
   const senha = "senha" in data && typeof data.senha === "string" ? data.senha : "";
-  if (!email || !senha) throw new AuthCredenciaisInvalidasError("Email ou senha inválidos");
+  if (!email || email.length > 254 || !senha || senha.length > 128) {
+    throw new AuthCredenciaisInvalidasError("Email ou senha inválidos");
+  }
   return { email, senha };
 }
 

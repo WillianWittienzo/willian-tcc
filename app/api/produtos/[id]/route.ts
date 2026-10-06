@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { produtoController } from "@/server/controllers/produtoController";
 import { verificarAdmin } from "@/server/auth/autorizacao";
+import { requisicaoDeMesmaOrigem } from "@/server/auth/origem";
 
 function obterProdutoId(id: string) {
   const produtoId = Number(id);
@@ -11,6 +12,9 @@ export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  if (!requisicaoDeMesmaOrigem(request)) {
+    return NextResponse.json({ erro: "Origem da requisição não permitida" }, { status: 403 });
+  }
   const bloqueio = await verificarAdmin(request);
   if (bloqueio) return NextResponse.json({ erro: bloqueio.erro }, { status: bloqueio.status });
 
@@ -21,7 +25,7 @@ export async function PUT(
     return NextResponse.json({ erro: "ID do produto inválido" }, { status: 400 });
   }
 
-  const data = await request.json();
+  const data: unknown = await request.json().catch(() => null);
   const resultado = await produtoController.atualizar(produtoId, data);
 
   return NextResponse.json(resultado.data, { status: resultado.status });
@@ -31,6 +35,9 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  if (!requisicaoDeMesmaOrigem(request)) {
+    return NextResponse.json({ erro: "Origem da requisição não permitida" }, { status: 403 });
+  }
   const bloqueio = await verificarAdmin(request);
   if (bloqueio) return NextResponse.json({ erro: bloqueio.erro }, { status: bloqueio.status });
 
