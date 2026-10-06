@@ -8,6 +8,7 @@ import { FaPhoneAlt } from "react-icons/fa";
 import Link from "next/link";
 
 export default function Footer() {
+  const anoAtual = new Date().getFullYear();
   return (
 
     <footer className="w-full border-t border-[hsl(26.67deg_14.75%_88.04%)] py-10">
@@ -39,8 +40,8 @@ export default function Footer() {
           <div>
             <h1 className="text-2xl font-bold">Contato</h1>
             <div className="text-sm text-gray-500 mt-1 ">
-              <Link href=""><p className="flex gap-2 "><FaMapMarkerAlt className="text-amber-600" />Rua das Pizzas, 123 Centro - São Paulo, SP</p></Link>
-              <Link href="/"><p className="flex gap-2 items-center"><FaPhoneAlt className="text-amber-600" />(11) 99999-9999</p></Link>
+              <p className="flex gap-2"><FaMapMarkerAlt className="text-amber-600" />Rua das Pizzas, 123 Centro - São Paulo, SP</p>
+              <a href="tel:+5511999999999" className="flex gap-2 items-center"><FaPhoneAlt className="text-amber-600" />(11) 99999-9999</a>
             </div>
           </div>
 
@@ -55,7 +56,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="mt-3 border-t border-[hsl(26.67deg_14.75%_88.04%)]">
-        <h1 className="ml-8 text-sm text-gray-500 mt-2">© 2025 Brasa Quente Todos os direitos reservados.</h1>
+        <p className="ml-8 text-sm text-gray-500 mt-2">© {anoAtual} Brasa Quente. Todos os direitos reservados.</p>
       </div>
     </footer>
 

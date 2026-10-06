@@ -1,5 +1,6 @@
 import { NomeBorda as NomeBordaBanco, NomeTamanho, StatusPedido } from "@/app/generated/prisma/client";
 import { aplicarDesconto, buscarBorda, TAMANHOS, type NomeBorda } from "@/lib/catalogo";
+import { calcularTaxaEntregaEmCentavos } from "@/lib/pedido";
 import { pedidoRepository } from "@/server/repositories/pedidoRepository";
 
 type TamanhoPedido = (typeof TAMANHOS)[number];
@@ -107,7 +108,7 @@ export const pedidoService = {
       };
     });
 
-    const taxaEntregaEmCentavos = 800;
+    const taxaEntregaEmCentavos = calcularTaxaEntregaEmCentavos(subtotalEmCentavos);
     return formatarPedido(await pedidoRepository.criar({
       clienteId,
       taxaEntrega: taxaEntregaEmCentavos / 100,

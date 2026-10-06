@@ -16,6 +16,12 @@ export const authRepository = {
     return prisma.sessao.create({ data });
   },
 
+  excluirSessoesExpiradasDoUsuario(usuarioId: number, agora: Date) {
+    return prisma.sessao.deleteMany({
+      where: { usuarioId, expiraEm: { lte: agora } },
+    });
+  },
+
   buscarSessao(tokenHash: string) {
     return prisma.sessao.findUnique({
       where: { tokenHash },

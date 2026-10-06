@@ -5,6 +5,15 @@ import { useEffect, useState } from "react";
 import type { Card, Categoria } from "@/components/data/cardapio";
 import { atualizarProduto, criarProduto, excluirProduto, listarProdutos } from "@/client/produtoClient";
 
+function imagemValidaParaPreview(image: string) {
+  if (image.startsWith("/") && !image.startsWith("//") && image.length > 1) return true;
+  try {
+    return new URL(image).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export default function AdminProdutos() {
   const [produtos, setProdutos] = useState<Card[]>([]);
   const [modalAberto, setModalAberto] = useState(false);
@@ -17,6 +26,7 @@ export default function AdminProdutos() {
   const [precoGrande, setPrecoGrande] = useState("");
   const [image, setImage] = useState("");
   const [desconto, setDesconto] = useState("");
+  const [imagemComErro, setImagemComErro] = useState(false);
   const [categoria, setCategoria] = useState<Categoria>("Tradicional");
 
   useEffect(() => {
@@ -25,7 +35,7 @@ export default function AdminProdutos() {
 
   function limparFormulario() {
     setNome(""); setDescricao(""); setPrecoPequena(""); setPrecoMedia(""); setPrecoGrande("");
-    setImage(""); setDesconto(""); setCategoria("Tradicional"); setProdutoEmEdicao(null); setErro("");
+    setImage(""); setDesconto(""); setImagemComErro(false); setCategoria("Tradicional"); setProdutoEmEdicao(null); setErro("");
   }
 
   function fecharModal() { setModalAberto(false); limparFormulario(); }
@@ -36,6 +46,7 @@ export default function AdminProdutos() {
     setDescricao(produto.description);
     setCategoria(produto.categoria);
     setImage(produto.image);
+    setImagemComErro(false);
     setDesconto(produto.descontoPercentual === null ? "" : String(produto.descontoPercentual));
     setPrecoPequena(String(produto.tamanhos.find((t) => t.nome === "Pequena")?.preco ?? ""));
     setPrecoMedia(String(produto.tamanhos.find((t) => t.nome === "Média")?.preco ?? ""));
@@ -104,8 +115,18 @@ export default function AdminProdutos() {
               <label className="block text-sm font-medium">Promoção (% de desconto, deixe vazio para desativar)</label>
               <input type="number" min="1" max="90" step="1" placeholder="Ex.: 15" value={desconto} onChange={(e) => setDesconto(e.target.value)} className="w-full border p-2 rounded-md" />
               <label className="block text-sm font-medium">Imagem (caminho local ou URL HTTPS)</label>
-              <input type="text" maxLength={500} placeholder="/pizzas/nome.jpg" value={image} onChange={(e) => setImage(e.target.value)} className="w-full border p-2 rounded-md" required={produtoEmEdicao === null} />
+              <input type="text" maxLength={500} placeholder="/pizzas/nome.jpg" value={image} onChange={(e) => { setImage(e.target.value); setImagemComErro(false); }} className="w-full border p-2 rounded-md" required={produtoEmEdicao === null} />
               {produtoEmEdicao !== null && <p className="text-xs text-gray-500">Se este campo for apagado, a imagem atual será preservada.</p>}
+              {image && !imagemValidaParaPreview(image) && <p className="text-sm text-red-700">Use um caminho local iniciado por / ou uma URL HTTPS válida.</p>}
+              {image && imagemValidaParaPreview(image) && (
+                <div className="relative h-40 w-full overflow-hidden rounded-md border bg-gray-100">
+                  {!imagemComErro ? (
+                    <Image src={image} alt="Prévia da pizza" fill unoptimized={image.startsWith("http")} sizes="400px" onError={() => setImagemComErro(true)} className="object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center p-4 text-center text-sm text-red-700">Não foi possível carregar a imagem informada.</div>
+                  )}
+                </div>
+              )}
               <div className="flex justify-end gap-2 pt-2">
                 <button type="button" onClick={fecharModal} className="px-4 py-2 border rounded-md">Cancelar</button>
                 <button type="submit" className="px-4 py-2 bg-red-700 text-white rounded-md">{produtoEmEdicao === null ? "Adicionar" : "Salvar"}</button>

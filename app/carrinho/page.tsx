@@ -6,10 +6,13 @@ import { useState } from "react";
 import { LuTrash } from "react-icons/lu";
 import { useCart } from "@/app/context/CartContext";
 import { criarPedido } from "@/client/pedidoClient";
+import { calcularTaxaEntregaEmCentavos } from "@/lib/pedido";
+import { useRouter } from "next/navigation";
 
 export default function CarrinhoPage() {
   const [finalizando, setFinalizando] = useState(false);
   const { items, addToCart, decreaseQuantity, removeFromCart, clearCart } = useCart();
+  const router = useRouter();
 
   async function handleCheckout() {
     if (items.length === 0 || finalizando) return;
@@ -18,6 +21,8 @@ export default function CarrinhoPage() {
       const pedido = await criarPedido({ itens: items.map((item) => ({ produtoId: item.id, tamanho: item.tamanho, borda: item.borda, quantidade: item.quantidade })) });
       clearCart();
       alert(`Pedido #${pedido.id} realizado com sucesso!`);
+      router.push("/pedidos");
+      router.refresh();
     } catch (error) {
       alert(error instanceof Error ? error.message : "Erro ao finalizar pedido");
     } finally {
@@ -26,7 +31,7 @@ export default function CarrinhoPage() {
   }
 
   const subtotal = items.reduce((total, item) => total + (item.preco + item.precoBorda) * item.quantidade, 0);
-  const entrega = 8;
+  const entrega = calcularTaxaEntregaEmCentavos(Math.round(subtotal * 100)) / 100;
 
   return (
     <div className="max-w-6xl mx-auto p-6 mt-20 grid md:grid-cols-3 gap-8">
@@ -69,7 +74,7 @@ export default function CarrinhoPage() {
       <div className="bg-white p-6 rounded-xl shadow h-fit">
         <h2 className="text-lg font-bold mb-4">Resumo</h2>
         <div className="flex justify-between mb-2"><span>Subtotal</span><span>R$ {subtotal.toFixed(2)}</span></div>
-        <div className="flex justify-between mb-4"><span>Entrega</span><span>R$ {items.length ? entrega.toFixed(2) : "0.00"}</span></div>
+        <div className="flex justify-between mb-4"><span>Entrega</span><span>{items.length && entrega === 0 ? "Grátis" : `R$ ${items.length ? entrega.toFixed(2) : "0.00"}`}</span></div>
         <div className="flex justify-between font-bold text-lg mb-6"><span>Total</span><span>R$ {items.length ? (subtotal + entrega).toFixed(2) : "0.00"}</span></div>
         <button type="button" onClick={handleCheckout} disabled={!items.length || finalizando} className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100">{finalizando ? "Finalizando..." : "Finalizar Pedido"}</button>
         <Link href="/cardapio" className="block mt-6 w-full text-black py-2 bg-yellow-600 rounded-lg transition duration-300 hover:bg-yellow-500 hover:scale-105 text-center">Continuar comprando</Link>

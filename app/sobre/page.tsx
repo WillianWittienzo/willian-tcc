@@ -21,7 +21,7 @@ export default function SobrePage() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
 
           <div className="text-center">
-            <span className="font-display text-5xl text-primary md:text-6xl">5+</span>
+            <span className="font-display text-5xl text-primary md:text-6xl">15+</span>
             <p className="mt-2 text-muted-foreground">Anos de Experiência</p>
           </div>
 

@@ -27,7 +27,9 @@ export async function POST(request: NextRequest) {
       ...opcoesCookieSessao,
       expires: resultado.sessao.expiraEm,
     });
-  } else registrarFalhaLogin(chave);
+  } else if (resultado.status === 400) {
+    registrarFalhaLogin(chave);
+  }
 
   return response;
 }

@@ -111,6 +111,7 @@ export const authService = {
       throw new AuthCredenciaisInvalidasError("Email ou senha inválidos");
     }
 
+    await authRepository.excluirSessoesExpiradasDoUsuario(usuario.id, new Date());
     const token = randomBytes(32).toString("base64url");
     const expiraEm = new Date(Date.now() + DURACAO_SESSAO_MS);
     await authRepository.criarSessao({
@@ -124,8 +125,13 @@ export const authService = {
 
   async usuarioPorToken(token?: string) {
     if (!token) return null;
-    const sessao = await authRepository.buscarSessao(hashTokenSessao(token));
-    if (!sessao || sessao.expiraEm <= new Date()) return null;
+    const tokenHash = hashTokenSessao(token);
+    const sessao = await authRepository.buscarSessao(tokenHash);
+    if (!sessao) return null;
+    if (sessao.expiraEm <= new Date()) {
+      await authRepository.excluirSessao(tokenHash);
+      return null;
+    }
     return usuarioPublico(sessao.usuario);
   },
 

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "tsx --test tests/regras.test.ts",
     "admin:create": "tsx scripts/criarAdmin.ts"
   },
   "dependencies": {
