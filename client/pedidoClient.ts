@@ -1,8 +1,10 @@
+import type { NomeBorda, NomeBordaRecheada, TamanhoProduto } from "@/lib/catalogo";
+
 export type CriarPedidoData = {
   itens: {
     produtoId: number;
-    tamanho: "Pequena" | "Média" | "Grande";
-    borda: "Catupiry" | "Cheddar";
+    tamanho: TamanhoProduto;
+    borda: NomeBorda;
     quantidade: number;
   }[];
 };
@@ -21,8 +23,8 @@ export type ItemPedido = {
   id: number;
   produtoId: number | null;
   nomeProduto: string;
-  tamanho: "Pequena" | "Média" | "Grande";
-  borda: "Catupiry" | "Cheddar" | null;
+  tamanho: TamanhoProduto;
+  borda: NomeBordaRecheada | null;
   precoBorda: number;
   quantidade: number;
   precoUnitario: number;

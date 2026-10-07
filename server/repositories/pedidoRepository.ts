@@ -9,7 +9,7 @@ type CriarPedidoData = {
     produtoId: number;
     nomeProduto: string;
     tamanho: NomeTamanho;
-    borda: NomeBorda;
+    borda: NomeBorda | null;
     precoBorda: number;
     quantidade: number;
     precoUnitario: number;

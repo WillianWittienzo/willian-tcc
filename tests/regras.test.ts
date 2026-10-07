@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { itensTemMesmaConfiguracao } from "../lib/carrinho";
 import { aplicarDesconto, buscarBorda } from "../lib/catalogo";
 import { calcularTaxaEntregaEmCentavos } from "../lib/pedido";
 
@@ -17,8 +18,26 @@ test("calcula promoção com arredondamento em centavos", () => {
   assert.equal(aplicarDesconto(42.9, null), 42.9);
 });
 
-test("aceita somente as duas bordas fixas", () => {
+test("aceita sem borda sem acréscimo e mantém os recheios a R$ 5,00", () => {
+  assert.deepEqual(buscarBorda("Sem borda"), { nome: "Sem borda", preco: 0 });
   assert.deepEqual(buscarBorda("Catupiry"), { nome: "Catupiry", preco: 5 });
   assert.deepEqual(buscarBorda("Cheddar"), { nome: "Cheddar", preco: 5 });
   assert.equal(buscarBorda("Outra"), undefined);
+});
+
+test("diferencia itens do carrinho pela borda", () => {
+  const semBorda = { id: 1, tamanho: "Média", borda: "Sem borda" } as const;
+
+  assert.equal(itensTemMesmaConfiguracao(semBorda, { ...semBorda }), true);
+  assert.equal(
+    itensTemMesmaConfiguracao(semBorda, { ...semBorda, borda: "Catupiry" }),
+    false,
+  );
+  assert.equal(
+    itensTemMesmaConfiguracao(
+      { ...semBorda, borda: "Catupiry" },
+      { ...semBorda, borda: "Cheddar" },
+    ),
+    false,
+  );
 });

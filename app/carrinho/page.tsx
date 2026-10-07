@@ -45,7 +45,9 @@ export default function CarrinhoPage() {
                 <div>
                   <h2 className="font-bold">{item.nome}</h2>
                   <p className="text-sm text-gray-500">Tamanho: {item.tamanho}</p>
-                  <p className="text-sm text-gray-500">Borda: {item.borda} (+R$ {item.precoBorda.toFixed(2)})</p>
+                  <p className="text-sm text-gray-500">
+                    Borda: {item.borda}{item.precoBorda > 0 ? ` (+R$ ${item.precoBorda.toFixed(2)})` : " — R$ 0,00"}
+                  </p>
                   <p className="text-sm text-gray-500">R$ {(item.preco + item.precoBorda).toFixed(2)}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <button type="button" onClick={() => decreaseQuantity(chave)} className="border border-red-500 text-red-500 w-8 h-8 rounded-lg">-</button>

@@ -101,7 +101,7 @@ export const pedidoService = {
         produtoId: produto.id,
         nomeProduto: produto.nome,
         tamanho,
-        borda: NomeBordaBanco[borda.nome],
+        borda: borda.nome === "Sem borda" ? null : NomeBordaBanco[borda.nome],
         precoBorda: borda.preco,
         quantidade: item.quantidade,
         precoUnitario: precoPizzaEmCentavos / 100,

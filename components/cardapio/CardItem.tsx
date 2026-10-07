@@ -54,7 +54,11 @@ export function CardItem({ id, nome, categoria, image, description, tamanhos, de
 
       <label className="mt-3 block text-sm font-semibold" htmlFor={`borda-${id}`}>Borda</label>
       <select id={`borda-${id}`} value={bordaSelecionada.nome} onChange={(event) => setBordaSelecionada(BORDAS.find((borda) => borda.nome === event.target.value) ?? BORDAS[0])} className="mt-1 w-full rounded-md border p-2">
-        {BORDAS.map((borda) => <option key={borda.nome} value={borda.nome}>{borda.nome} (+R$ {borda.preco.toFixed(2)})</option>)}
+        {BORDAS.map((borda) => (
+          <option key={borda.nome} value={borda.nome}>
+            {borda.nome}{borda.preco === 0 ? " — R$ 0,00" : ` (+R$ ${borda.preco.toFixed(2).replace(".", ",")})`}
+          </option>
+        ))}
       </select>
 
       <div className="mt-4 flex items-center justify-between gap-3">

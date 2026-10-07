@@ -43,10 +43,11 @@ export function PedidoCard({ pedido, children }: PedidoCardProps) {
               <p className="text-sm text-gray-500">
                 {item.tamanho} · {item.quantidade} unidade(s)
               </p>
-              <p className="text-sm text-gray-500">
-                Borda: {item.borda ?? "Não registrada"}
-                {item.borda ? ` (+${moeda.format(item.precoBorda)})` : ""}
-              </p>
+              {item.borda && (
+                <p className="text-sm text-gray-500">
+                  Borda: {item.borda} (+{moeda.format(item.precoBorda)})
+                </p>
+              )}
             </div>
             <div className="text-right text-sm">
               <p>{moeda.format(item.precoUnitario)} {item.borda ? "+ borda" : "cada"}</p>

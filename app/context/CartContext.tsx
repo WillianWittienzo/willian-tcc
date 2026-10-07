@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from "react";
 import type { Categoria } from "@/components/data/cardapio";
+import { itensTemMesmaConfiguracao } from "@/lib/carrinho";
 import type { NomeBorda, TamanhoProduto } from "@/lib/catalogo";
 
 export type CartItem = {
@@ -27,8 +28,6 @@ type CartContextType = {
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
-const mesmoItem = (item: CartItem, chave: ChaveItem) =>
-  item.id === chave.id && item.tamanho === chave.tamanho && item.borda === chave.borda;
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -36,20 +35,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   function addToCart(item: Omit<CartItem, "quantidade">) {
     setItems((atuais) => {
       const chave = { id: item.id, tamanho: item.tamanho, borda: item.borda };
-      return atuais.some((atual) => mesmoItem(atual, chave))
-        ? atuais.map((atual) => mesmoItem(atual, chave) ? { ...atual, quantidade: atual.quantidade + 1 } : atual)
+      return atuais.some((atual) => itensTemMesmaConfiguracao(atual, chave))
+        ? atuais.map((atual) => itensTemMesmaConfiguracao(atual, chave) ? { ...atual, quantidade: atual.quantidade + 1 } : atual)
         : [...atuais, { ...item, quantidade: 1 }];
     });
   }
 
   function decreaseQuantity(chave: ChaveItem) {
     setItems((atuais) => atuais
-      .map((item) => mesmoItem(item, chave) ? { ...item, quantidade: item.quantidade - 1 } : item)
+      .map((item) => itensTemMesmaConfiguracao(item, chave) ? { ...item, quantidade: item.quantidade - 1 } : item)
       .filter((item) => item.quantidade > 0));
   }
 
   function removeFromCart(chave: ChaveItem) {
-    setItems((atuais) => atuais.filter((item) => !mesmoItem(item, chave)));
+    setItems((atuais) => atuais.filter((item) => !itensTemMesmaConfiguracao(item, chave)));
   }
 
   return (
