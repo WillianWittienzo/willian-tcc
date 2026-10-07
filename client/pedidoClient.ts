@@ -1,4 +1,13 @@
 import type { NomeBorda, NomeBordaRecheada, TamanhoProduto } from "@/lib/catalogo";
+import {
+  STATUS_PEDIDO,
+  type PeriodoPedido,
+  type StatusFiltroPedido,
+  type StatusPedido,
+} from "@/lib/filtrosPedido";
+
+export { STATUS_PEDIDO };
+export type { StatusPedido };
 
 export type CriarPedidoData = {
   itens: {
@@ -8,16 +17,6 @@ export type CriarPedidoData = {
     quantidade: number;
   }[];
 };
-
-export const STATUS_PEDIDO = [
-  "Pendente",
-  "EmPreparo",
-  "SaiuParaEntrega",
-  "Entregue",
-  "Cancelado",
-] as const;
-
-export type StatusPedido = (typeof STATUS_PEDIDO)[number];
 
 export type ItemPedido = {
   id: number;
@@ -40,11 +39,33 @@ export type Pedido = {
   itens: ItemPedido[];
 };
 
-export async function listarPedidos(): Promise<Pedido[]> {
-  const response = await fetch("/api/pedidos");
+export type PaginaPedidos = {
+  pedidos: Pedido[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+};
+
+export type FiltrosPedidos = {
+  status: StatusFiltroPedido;
+  periodo: PeriodoPedido;
+  page: number;
+  limit?: number;
+};
+
+export async function listarPedidos(filtros: FiltrosPedidos): Promise<PaginaPedidos> {
+  const parametros = new URLSearchParams({
+    status: filtros.status,
+    periodo: filtros.periodo,
+    page: String(filtros.page),
+    limit: String(filtros.limit ?? 10),
+  });
+  const response = await fetch(`/api/pedidos?${parametros}`);
 
   if (!response.ok) {
-    throw new Error("Erro ao buscar pedidos");
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.erro ?? "Erro ao buscar pedidos");
   }
 
   return response.json();

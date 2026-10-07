@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 import Sidebar from "@/components/adm/Sidebar"
-import Header from "@/components/layout/Header"
+import Header from "@/components/adm/Header"
 import { usuarioAtual } from "@/server/auth/sessao"
 
 export default async function AdminLayout({
@@ -13,12 +13,12 @@ export default async function AdminLayout({
   if (usuario.papel !== "Admin") redirect("/")
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 lg:flex">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col">
+      <div className="min-w-0 flex-1">
         <Header />
-        <main className="p-6 overflow-y-auto">
+        <main className="p-4 sm:p-6">
           {children}
         </main>
       </div>

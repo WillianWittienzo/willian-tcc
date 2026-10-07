@@ -3,14 +3,18 @@ import {
   PedidoNaoEncontradoError,
   pedidoService,
 } from "@/server/services/pedidoService";
+import { ParametrosFiltroInvalidosError } from "@/lib/filtrosPedido";
 
 export const pedidoController = {
-  async listarTodos() {
+  async listarTodos(parametros: Record<string, unknown>) {
     try {
-      const pedidos = await pedidoService.listarTodos();
+      const pedidos = await pedidoService.listarTodos(parametros);
 
       return { status: 200, data: pedidos };
     } catch (error) {
+      if (error instanceof ParametrosFiltroInvalidosError) {
+        return { status: 400, data: { erro: error.message } };
+      }
       console.error("Erro ao listar pedidos:", error);
 
       return {

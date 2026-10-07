@@ -17,14 +17,14 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-red-700 text-white flex flex-col justify-between">
+    <aside className="flex w-full flex-col justify-between bg-red-700 text-white lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:shrink-0">
       
       <div>
-        <div className="p-6 text-xl font-bold border-b border-red-600">
+        <div className="border-b border-red-600 p-4 text-lg font-bold lg:p-6 lg:text-xl">
           🍕 BRASA QUENTE
         </div>
 
-        <nav className="flex flex-col p-4 gap-2">
+        <nav className="flex flex-wrap gap-2 p-3 lg:flex-col lg:p-4">
           <Link href="/admin" className="flex items-center gap-2 p-2 rounded hover:bg-red-600">
             <LayoutDashboard size={18} />
             Dashboard
@@ -43,7 +43,7 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      <div className="p-4 border-t border-red-600">
+      <div className="border-t border-red-600 p-4">
 
         <button onClick={sair} className="flex items-center gap-2 w-full hover:text-gray-200">
           <LogOut size={18} />

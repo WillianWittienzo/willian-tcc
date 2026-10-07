@@ -8,7 +8,9 @@ export async function GET(request: NextRequest) {
   const bloqueio = await verificarAdmin(request);
   if (bloqueio) return NextResponse.json({ erro: bloqueio.erro }, { status: bloqueio.status });
 
-  const resultado = await pedidoController.listarTodos();
+  const resultado = await pedidoController.listarTodos(
+    Object.fromEntries(request.nextUrl.searchParams.entries()),
+  );
 
   return NextResponse.json(resultado.data, {
     status: resultado.status,

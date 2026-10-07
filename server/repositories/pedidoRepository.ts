@@ -19,8 +19,27 @@ type CriarPedidoData = {
 const incluirItens = { itens: { orderBy: { id: "asc" as const } } };
 
 export const pedidoRepository = {
-  listarTodos() {
-    return prisma.pedido.findMany({ include: incluirItens, orderBy: [{ criadoEm: "desc" }, { id: "desc" }] });
+  async listarTodos(filtros: {
+    status?: StatusPedido;
+    intervalo?: { gte: Date; lt: Date };
+    skip: number;
+    take: number;
+  }) {
+    const where = {
+      ...(filtros.status ? { status: filtros.status } : {}),
+      ...(filtros.intervalo ? { criadoEm: filtros.intervalo } : {}),
+    };
+    const [total, pedidos] = await prisma.$transaction([
+      prisma.pedido.count({ where }),
+      prisma.pedido.findMany({
+        where,
+        include: incluirItens,
+        orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
+        skip: filtros.skip,
+        take: filtros.take,
+      }),
+    ]);
+    return { total, pedidos };
   },
   listarDoCliente(clienteId: number) {
     return prisma.pedido.findMany({ where: { clienteId }, include: incluirItens, orderBy: [{ criadoEm: "desc" }, { id: "desc" }] });

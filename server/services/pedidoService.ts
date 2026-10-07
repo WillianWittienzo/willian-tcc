@@ -1,6 +1,7 @@
 import { NomeBorda as NomeBordaBanco, NomeTamanho, StatusPedido } from "@/app/generated/prisma/client";
 import { aplicarDesconto, buscarBorda, TAMANHOS, type NomeBorda } from "@/lib/catalogo";
 import { calcularTaxaEntregaEmCentavos } from "@/lib/pedido";
+import { calcularTotalPaginas, normalizarFiltrosPedidos, obterIntervaloPeriodo } from "@/lib/filtrosPedido";
 import { pedidoRepository } from "@/server/repositories/pedidoRepository";
 
 type TamanhoPedido = (typeof TAMANHOS)[number];
@@ -71,8 +72,21 @@ function registroNaoEncontrado(error: unknown) {
 }
 
 export const pedidoService = {
-  async listarTodos() {
-    return (await pedidoRepository.listarTodos()).map(formatarPedido);
+  async listarTodos(parametros: Record<string, unknown>) {
+    const filtros = normalizarFiltrosPedidos(parametros);
+    const { pedidos, total } = await pedidoRepository.listarTodos({
+      status: filtros.status === "Todos" ? undefined : StatusPedido[filtros.status],
+      intervalo: obterIntervaloPeriodo(filtros.periodo),
+      skip: (filtros.page - 1) * filtros.limit,
+      take: filtros.limit,
+    });
+    return {
+      pedidos: pedidos.map(formatarPedido),
+      total,
+      totalPages: calcularTotalPaginas(total, filtros.limit),
+      currentPage: filtros.page,
+      limit: filtros.limit,
+    };
   },
   async listarDoCliente(clienteId: number) {
     return (await pedidoRepository.listarDoCliente(clienteId)).map(formatarPedido);
