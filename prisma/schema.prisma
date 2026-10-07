@@ -68,6 +68,14 @@ model ProdutoTamanho {
 model Pedido {
   id          Int          @id @default(autoincrement())
   clienteId   Int?
+  nomeCliente String?      @db.VarChar(100)
+  telefone    String?      @db.VarChar(11)
+  cep         String?      @db.VarChar(8)
+  rua         String?      @db.VarChar(150)
+  numero      String?      @db.VarChar(20)
+  bairro      String?      @db.VarChar(100)
+  complemento String?      @db.VarChar(150)
+  referencia  String?      @db.VarChar(200)
   valorTotal  Decimal      @db.Decimal(10, 2)
   taxaEntrega Decimal      @db.Decimal(10, 2)
   status      StatusPedido @default(Pendente)
@@ -76,6 +84,9 @@ model Pedido {
   cliente     Usuario?     @relation(fields: [clienteId], references: [id], onDelete: SetNull)
 
   @@index([clienteId])
+  @@index([criadoEm])
+  @@index([status, criadoEm])
+  @@index([telefone])
 }
 
 model Usuario {

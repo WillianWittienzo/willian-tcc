@@ -36,9 +36,9 @@ export const pedidoController = {
     }
   },
 
-  async criar(clienteId: number, data: unknown) {
+  async criar(data: unknown) {
     try {
-      const pedido = await pedidoService.criar(clienteId, data);
+      const pedido = await pedidoService.criar(data);
 
       return {
         status: 201,

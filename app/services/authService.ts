@@ -1,6 +1,5 @@
 
 export {
-  cadastrar as register,
   login,
   logout,
   buscarSessao,

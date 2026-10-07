@@ -1,6 +1,6 @@
 # Brasa Quente
 
-Sistema de pizzaria desenvolvido com Next.js, Prisma e PostgreSQL. Inclui catálogo, carrinho, pedidos por cliente, painel administrativo, duas bordas fixas e promoções por produto.
+Sistema de pizzaria desenvolvido com Next.js, Prisma e PostgreSQL. Inclui catálogo, carrinho, checkout convidado com dados de entrega, painel administrativo, opções de borda e promoções por produto.
 
 ## Desenvolvimento
 
@@ -21,10 +21,11 @@ Não há upload binário persistente em produção: o filesystem da Vercel é ef
 ## Segurança
 
 - Sessão por cookie HttpOnly, Secure em produção e SameSite=Lax.
-- Autorização administrativa verificada no servidor.
+- Login e autorização administrativa verificados no servidor; clientes fazem pedidos sem conta.
 - Preços, promoções e acréscimos de borda calculados no backend.
 - Validação de origem em rotas mutáveis.
 - Limite local de tentativas de login. Em implantação com múltiplas instâncias, use um armazenamento distribuído para o rate limiting.
+- Limite local de pedidos públicos por origem, sem depender de infraestrutura externa.
 
 ## Verificações
 

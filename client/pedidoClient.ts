@@ -1,7 +1,8 @@
 import type { NomeBorda, NomeBordaRecheada, TamanhoProduto } from "@/lib/catalogo";
+import type { DadosEntrega } from "@/lib/checkout";
 import {
   STATUS_PEDIDO,
-  type PeriodoPedido,
+  type FiltrosDataPedido,
   type StatusFiltroPedido,
   type StatusPedido,
 } from "@/lib/filtrosPedido";
@@ -10,6 +11,7 @@ export { STATUS_PEDIDO };
 export type { StatusPedido };
 
 export type CriarPedidoData = {
+  dadosEntrega: DadosEntrega;
   itens: {
     produtoId: number;
     tamanho: TamanhoProduto;
@@ -32,6 +34,14 @@ export type ItemPedido = {
 export type Pedido = {
   id: number;
   clienteId: number | null;
+  nomeCliente: string | null;
+  telefone: string | null;
+  cep: string | null;
+  rua: string | null;
+  numero: string | null;
+  bairro: string | null;
+  complemento: string | null;
+  referencia: string | null;
   valorTotal: number;
   taxaEntrega: number;
   status: StatusPedido;
@@ -45,11 +55,11 @@ export type PaginaPedidos = {
   totalPages: number;
   currentPage: number;
   limit: number;
+  anosDisponiveis: number[];
 };
 
-export type FiltrosPedidos = {
+export type FiltrosPedidos = FiltrosDataPedido & {
   status: StatusFiltroPedido;
-  periodo: PeriodoPedido;
   page: number;
   limit?: number;
 };
@@ -57,10 +67,12 @@ export type FiltrosPedidos = {
 export async function listarPedidos(filtros: FiltrosPedidos): Promise<PaginaPedidos> {
   const parametros = new URLSearchParams({
     status: filtros.status,
-    periodo: filtros.periodo,
     page: String(filtros.page),
     limit: String(filtros.limit ?? 10),
   });
+  if (filtros.dia !== null) parametros.set("dia", String(filtros.dia));
+  if (filtros.mes !== null) parametros.set("mes", String(filtros.mes));
+  if (filtros.ano !== null) parametros.set("ano", String(filtros.ano));
   const response = await fetch(`/api/pedidos?${parametros}`);
 
   if (!response.ok) {

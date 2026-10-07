@@ -107,13 +107,15 @@ export default function Header() {
     )}
   </Link>
 </li>
-          {user ? (
+          {user?.papel === "Admin" ? (
             <>
-              <li><Link href="/pedidos">Meus Pedidos</Link></li>
+              <li><Link href="/admin">Painel Admin</Link></li>
               <li><button onClick={sair} className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Sair</button></li>
             </>
+          ) : user ? (
+            <li><button onClick={sair} className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Sair</button></li>
           ) : (
-            <li><Link href="/login" className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Entrar</Link></li>
+            <li><Link href="/login" className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Área administrativa</Link></li>
           )}
         </ul>
       </nav>
@@ -128,13 +130,15 @@ export default function Header() {
         <li className="mb-6"><Link href="/cardapio">Cardápio</Link></li>
         <li className="mb-6"><Link href="/sobre">Sobre</Link></li>
         <li className="mb-6"><Link href="/contato">Contato</Link></li>
-        {user ? (
+        {user?.papel === "Admin" ? (
           <>
-            <li className="mb-6"><Link href="/pedidos">Meus Pedidos</Link></li>
+            <li className="mb-6"><Link href="/admin">Painel Admin</Link></li>
             <li><button onClick={sair} className="text-red-600">Sair</button></li>
           </>
+        ) : user ? (
+          <li><button onClick={sair} className="text-red-600">Sair</button></li>
         ) : (
-          <li><Link href="/login" className="mb-6 text-red-600">Entrar</Link></li>
+          <li><Link href="/login" className="mb-6 text-red-600">Área administrativa</Link></li>
         )}
       </ul>
       

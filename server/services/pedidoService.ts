@@ -1,7 +1,8 @@
 import { NomeBorda as NomeBordaBanco, NomeTamanho, StatusPedido } from "@/app/generated/prisma/client";
 import { aplicarDesconto, buscarBorda, TAMANHOS, type NomeBorda } from "@/lib/catalogo";
+import { DadosEntregaInvalidosError, normalizarDadosEntrega } from "@/lib/checkout";
 import { calcularTaxaEntregaEmCentavos } from "@/lib/pedido";
-import { calcularTotalPaginas, normalizarFiltrosPedidos, obterIntervaloPeriodo } from "@/lib/filtrosPedido";
+import { calcularAnosDisponiveis, calcularTotalPaginas, normalizarFiltrosPedidos, obterIntervaloData } from "@/lib/filtrosPedido";
 import { pedidoRepository } from "@/server/repositories/pedidoRepository";
 
 type TamanhoPedido = (typeof TAMANHOS)[number];
@@ -16,6 +17,14 @@ function formatarPedido(pedido: PedidoPersistido) {
   return {
     id: pedido.id,
     clienteId: pedido.clienteId,
+    nomeCliente: pedido.nomeCliente,
+    telefone: pedido.telefone,
+    cep: pedido.cep,
+    rua: pedido.rua,
+    numero: pedido.numero,
+    bairro: pedido.bairro,
+    complemento: pedido.complemento,
+    referencia: pedido.referencia,
     valorTotal: Number(pedido.valorTotal),
     taxaEntrega: Number(pedido.taxaEntrega),
     status: pedido.status,
@@ -74,9 +83,9 @@ function registroNaoEncontrado(error: unknown) {
 export const pedidoService = {
   async listarTodos(parametros: Record<string, unknown>) {
     const filtros = normalizarFiltrosPedidos(parametros);
-    const { pedidos, total } = await pedidoRepository.listarTodos({
+    const { pedidos, total, pedidoMaisAntigo } = await pedidoRepository.listarTodos({
       status: filtros.status === "Todos" ? undefined : StatusPedido[filtros.status],
-      intervalo: obterIntervaloPeriodo(filtros.periodo),
+      intervalo: obterIntervaloData(filtros),
       skip: (filtros.page - 1) * filtros.limit,
       take: filtros.limit,
     });
@@ -86,13 +95,27 @@ export const pedidoService = {
       totalPages: calcularTotalPaginas(total, filtros.limit),
       currentPage: filtros.page,
       limit: filtros.limit,
+      anosDisponiveis: calcularAnosDisponiveis(pedidoMaisAntigo?.criadoEm ?? null),
     };
   },
   async listarDoCliente(clienteId: number) {
     return (await pedidoRepository.listarDoCliente(clienteId)).map(formatarPedido);
   },
-  async criar(clienteId: number, data: unknown) {
+  async criar(data: unknown) {
     const itensRecebidos = validarItens(data);
+    let dadosEntrega;
+    try {
+      dadosEntrega = normalizarDadosEntrega(
+        typeof data === "object" && data !== null && "dadosEntrega" in data
+          ? data.dadosEntrega
+          : null,
+      );
+    } catch (error) {
+      if (error instanceof DadosEntregaInvalidosError) {
+        throw new PedidoInvalidoError(error.message);
+      }
+      throw error;
+    }
     const produtoIds = [...new Set(itensRecebidos.map((item) => item.produtoId))];
     const produtos = await pedidoRepository.buscarProdutosComTamanhos(produtoIds);
     const produtosPorId = new Map(produtos.map((produto) => [produto.id, produto]));
@@ -124,7 +147,8 @@ export const pedidoService = {
 
     const taxaEntregaEmCentavos = calcularTaxaEntregaEmCentavos(subtotalEmCentavos);
     return formatarPedido(await pedidoRepository.criar({
-      clienteId,
+      clienteId: null,
+      ...dadosEntrega,
       taxaEntrega: taxaEntregaEmCentavos / 100,
       valorTotal: (subtotalEmCentavos + taxaEntregaEmCentavos) / 100,
       itens,

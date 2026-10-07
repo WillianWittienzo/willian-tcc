@@ -11,12 +11,6 @@ async function resposta<T>(response: Response): Promise<T> {
   return data;
 }
 
-export async function cadastrar(data: { nome: string; email: string; senha: string }) {
-  return resposta<Usuario>(await fetch("/api/auth/cadastro", {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
-  }));
-}
-
 export async function login(email: string, senha: string) {
   const data = await resposta<{ usuario: Usuario }>(await fetch("/api/auth/login", {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, senha }),

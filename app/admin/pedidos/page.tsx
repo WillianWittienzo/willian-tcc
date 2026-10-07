@@ -9,12 +9,11 @@ import {
   type StatusPedido,
 } from "@/client/pedidoClient";
 import { PedidoCard } from "@/components/pedidos/PedidoCard";
+import { FiltrosData } from "@/components/adm/FiltrosData";
 import {
-  PERIODOS_PEDIDO,
-  ROTULOS_PERIODO,
   ROTULOS_STATUS,
   STATUS_FILTRO_PEDIDO,
-  type PeriodoPedido,
+  type FiltrosDataPedido,
   type StatusFiltroPedido,
 } from "@/lib/filtrosPedido";
 
@@ -26,7 +25,8 @@ export default function PedidosPage() {
   const [erro, setErro] = useState("");
   const [pedidoAtualizando, setPedidoAtualizando] = useState<number | null>(null);
   const [status, setStatus] = useState<StatusFiltroPedido>("Todos");
-  const [periodo, setPeriodo] = useState<PeriodoPedido>("Todos");
+  const [filtrosData, setFiltrosData] = useState<FiltrosDataPedido>({ dia: null, mes: null, ano: null });
+  const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
   const [pagina, setPagina] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPaginas, setTotalPaginas] = useState(1);
@@ -37,7 +37,7 @@ export default function PedidosPage() {
     try {
       const resultado = await listarPedidos({
         status,
-        periodo,
+        ...filtrosData,
         page: pagina,
         limit: PEDIDOS_POR_PAGINA,
       });
@@ -48,13 +48,14 @@ export default function PedidosPage() {
       setPedidos(resultado.pedidos);
       setTotal(resultado.total);
       setTotalPaginas(resultado.totalPages);
+      setAnosDisponiveis(resultado.anosDisponiveis);
     } catch (error) {
       console.error("Erro ao carregar pedidos:", error);
       setErro(error instanceof Error ? error.message : "Não foi possível carregar os pedidos");
     } finally {
       setCarregando(false);
     }
-  }, [pagina, periodo, status]);
+  }, [filtrosData, pagina, status]);
 
   useEffect(() => {
     void carregarPedidos();
@@ -101,21 +102,14 @@ export default function PedidosPage() {
               ))}
             </select>
           </label>
-          <label className="text-sm font-semibold">
-            Período
-            <select
-              value={periodo}
-              onChange={(event) => {
-                setPeriodo(event.target.value as PeriodoPedido);
-                setPagina(1);
-              }}
-              className="ml-2 rounded-md border bg-white px-3 py-2 font-normal"
-            >
-              {PERIODOS_PEDIDO.map((opcao) => (
-                <option key={opcao} value={opcao}>{ROTULOS_PERIODO[opcao]}</option>
-              ))}
-            </select>
-          </label>
+          <FiltrosData
+            filtros={filtrosData}
+            anosDisponiveis={anosDisponiveis}
+            onChange={(novosFiltros) => {
+              setFiltrosData(novosFiltros);
+              setPagina(1);
+            }}
+          />
         </div>
       </div>
 

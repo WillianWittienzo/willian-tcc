@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import Image from "next/image"
 import { useAuth } from "../context/AuthContext"
 import { useRouter } from "next/navigation"
@@ -23,8 +22,8 @@ export default function LoginPage() {
         setEnviando(true)
 
         try {
-            const usuario = await login(email, senha)
-            router.push(usuario.papel === "Admin" ? "/admin" : "/cardapio")
+            await login(email, senha)
+            router.push("/admin")
         } catch (error) {
             setErro(error instanceof Error ? error.message : "Erro ao entrar")
         } finally {
@@ -49,11 +48,11 @@ export default function LoginPage() {
                 </div>
 
                 <h1 className="text-3xl font-bold text-center mb-2">
-                    BEM-VINDO
+                    ACESSO ADMINISTRATIVO
                 </h1>
 
                 <p className="text-center text-gray-500 mb-6">
-                    Faça login para continuar
+                    Entre com uma conta de administrador
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -92,13 +91,6 @@ export default function LoginPage() {
                         {enviando ? "Entrando..." : "Entrar"}
                     </button>
                 </form>
-
-                <p className="text-center text-sm text-gray-500 mt-6">
-                    Não tem conta?{" "}
-                    <Link href="/cadastro" className="text-red-700 font-medium">
-                        Cadastre-se
-                    </Link>
-                </p>
             </div>
                 
         </main>

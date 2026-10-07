@@ -2,7 +2,15 @@ import { NomeBorda, NomeTamanho, StatusPedido } from "@/app/generated/prisma/cli
 import { prisma } from "@/lib/prisma";
 
 type CriarPedidoData = {
-  clienteId: number;
+  clienteId: number | null;
+  nomeCliente: string;
+  telefone: string;
+  cep: string;
+  rua: string;
+  numero: string;
+  bairro: string;
+  complemento: string | null;
+  referencia: string | null;
   valorTotal: number;
   taxaEntrega: number;
   itens: {
@@ -29,7 +37,7 @@ export const pedidoRepository = {
       ...(filtros.status ? { status: filtros.status } : {}),
       ...(filtros.intervalo ? { criadoEm: filtros.intervalo } : {}),
     };
-    const [total, pedidos] = await prisma.$transaction([
+    const [total, pedidos, pedidoMaisAntigo] = await prisma.$transaction([
       prisma.pedido.count({ where }),
       prisma.pedido.findMany({
         where,
@@ -38,8 +46,9 @@ export const pedidoRepository = {
         skip: filtros.skip,
         take: filtros.take,
       }),
+      prisma.pedido.findFirst({ orderBy: { criadoEm: "asc" }, select: { criadoEm: true } }),
     ]);
-    return { total, pedidos };
+    return { total, pedidos, pedidoMaisAntigo };
   },
   listarDoCliente(clienteId: number) {
     return prisma.pedido.findMany({ where: { clienteId }, include: incluirItens, orderBy: [{ criadoEm: "desc" }, { id: "desc" }] });
@@ -51,6 +60,14 @@ export const pedidoRepository = {
     return prisma.pedido.create({
       data: {
         clienteId: data.clienteId,
+        nomeCliente: data.nomeCliente,
+        telefone: data.telefone,
+        cep: data.cep,
+        rua: data.rua,
+        numero: data.numero,
+        bairro: data.bairro,
+        complemento: data.complemento,
+        referencia: data.referencia,
         valorTotal: data.valorTotal,
         taxaEntrega: data.taxaEntrega,
         itens: { create: data.itens },

@@ -1,9 +1,15 @@
 import { dashboardRepository } from "@/server/repositories/dashboardRepository";
-import { normalizarPeriodo, obterIntervaloPeriodo } from "@/lib/filtrosPedido";
+import { calcularAnosDisponiveis, normalizarFiltrosData, obterIntervaloData } from "@/lib/filtrosPedido";
 
 export const dashboardService = {
-  obterResumo(parametros: Record<string, unknown>) {
-    const periodo = normalizarPeriodo(parametros.periodo);
-    return dashboardRepository.obterResumo(obterIntervaloPeriodo(periodo));
+  async obterResumo(parametros: Record<string, unknown>) {
+    const filtros = normalizarFiltrosData(parametros);
+    const { pedidoMaisAntigo, ...resumo } = await dashboardRepository.obterResumo(
+      obterIntervaloData(filtros),
+    );
+    return {
+      ...resumo,
+      anosDisponiveis: calcularAnosDisponiveis(pedidoMaisAntigo?.criadoEm ?? null),
+    };
   },
 };

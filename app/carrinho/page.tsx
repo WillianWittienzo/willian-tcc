@@ -6,25 +6,37 @@ import { useState } from "react";
 import { LuTrash } from "react-icons/lu";
 import { useCart } from "@/app/context/CartContext";
 import { criarPedido } from "@/client/pedidoClient";
+import { CheckoutModal } from "@/components/carrinho/CheckoutModal";
+import type { DadosEntrega } from "@/lib/checkout";
 import { calcularTaxaEntregaEmCentavos } from "@/lib/pedido";
-import { useRouter } from "next/navigation";
 
 export default function CarrinhoPage() {
   const [finalizando, setFinalizando] = useState(false);
+  const [checkoutAberto, setCheckoutAberto] = useState(false);
+  const [pedidoConfirmado, setPedidoConfirmado] = useState<number | null>(null);
   const { items, addToCart, decreaseQuantity, removeFromCart, clearCart } = useCart();
-  const router = useRouter();
 
-  async function handleCheckout() {
+  function abrirCheckout() {
+    if (items.length === 0 || finalizando) return;
+    setCheckoutAberto(true);
+  }
+
+  async function confirmarPedido(dadosEntrega: DadosEntrega) {
     if (items.length === 0 || finalizando) return;
     setFinalizando(true);
     try {
-      const pedido = await criarPedido({ itens: items.map((item) => ({ produtoId: item.id, tamanho: item.tamanho, borda: item.borda, quantidade: item.quantidade })) });
+      const pedido = await criarPedido({
+        dadosEntrega,
+        itens: items.map((item) => ({
+          produtoId: item.id,
+          tamanho: item.tamanho,
+          borda: item.borda,
+          quantidade: item.quantidade,
+        })),
+      });
       clearCart();
-      alert(`Pedido #${pedido.id} realizado com sucesso!`);
-      router.push("/pedidos");
-      router.refresh();
-    } catch (error) {
-      alert(error instanceof Error ? error.message : "Erro ao finalizar pedido");
+      setCheckoutAberto(false);
+      setPedidoConfirmado(pedido.id);
     } finally {
       setFinalizando(false);
     }
@@ -78,9 +90,30 @@ export default function CarrinhoPage() {
         <div className="flex justify-between mb-2"><span>Subtotal</span><span>R$ {subtotal.toFixed(2)}</span></div>
         <div className="flex justify-between mb-4"><span>Entrega</span><span>{items.length && entrega === 0 ? "Grátis" : `R$ ${items.length ? entrega.toFixed(2) : "0.00"}`}</span></div>
         <div className="flex justify-between font-bold text-lg mb-6"><span>Total</span><span>R$ {items.length ? (subtotal + entrega).toFixed(2) : "0.00"}</span></div>
-        <button type="button" onClick={handleCheckout} disabled={!items.length || finalizando} className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100">{finalizando ? "Finalizando..." : "Finalizar Pedido"}</button>
+        <button type="button" onClick={abrirCheckout} disabled={!items.length || finalizando} className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100">Finalizar Pedido</button>
         <Link href="/cardapio" className="block mt-6 w-full text-black py-2 bg-yellow-600 rounded-lg transition duration-300 hover:bg-yellow-500 hover:scale-105 text-center">Continuar comprando</Link>
       </div>
+
+      {checkoutAberto && (
+        <CheckoutModal
+          enviando={finalizando}
+          onCancelar={() => setCheckoutAberto(false)}
+          onConfirmar={confirmarPedido}
+        />
+      )}
+
+      {pedidoConfirmado !== null && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacao">
+          <div className="w-full max-w-md rounded-xl bg-white p-6 text-center shadow-xl">
+            <h2 id="titulo-confirmacao" className="text-2xl font-bold text-green-700">Pedido confirmado!</h2>
+            <p className="mt-3 text-lg">Pedido #{pedidoConfirmado} realizado com sucesso.</p>
+            <p className="mt-2 text-sm text-gray-500">A pizzaria recebeu seu pedido e cuidará da entrega.</p>
+            <Link href="/cardapio" onClick={() => setPedidoConfirmado(null)} className="mt-6 block rounded-md bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700">
+              Voltar ao cardápio
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

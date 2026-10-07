@@ -5,18 +5,7 @@ import { authRepository } from "@/server/repositories/authRepository";
 const scryptAsync = promisify(scrypt);
 const DURACAO_SESSAO_MS = 7 * 24 * 60 * 60 * 1000;
 
-export class AuthDadosInvalidosError extends Error {}
 export class AuthCredenciaisInvalidasError extends Error {}
-export class AuthEmailDuplicadoError extends Error {}
-
-function emailDuplicadoNoBanco(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "P2002"
-  );
-}
 
 function usuarioPublico(usuario: {
   id: number;
@@ -51,24 +40,6 @@ async function verificarSenha(senha: string, hashArmazenado: string) {
   return hashBuffer.length === chave.length && timingSafeEqual(hashBuffer, chave);
 }
 
-function validarCadastro(data: unknown) {
-  if (typeof data !== "object" || data === null) {
-    throw new AuthDadosInvalidosError("Dados de cadastro inválidos");
-  }
-
-  const nome = "nome" in data && typeof data.nome === "string" ? data.nome.trim() : "";
-  const email = "email" in data && typeof data.email === "string" ? data.email.trim().toLowerCase() : "";
-  const senha = "senha" in data && typeof data.senha === "string" ? data.senha : "";
-
-  if (nome.length < 2 || nome.length > 100 || email.length > 254 || !/^\S+@\S+\.\S+$/.test(email) || senha.length < 8 || senha.length > 128) {
-    throw new AuthDadosInvalidosError(
-      "Informe nome, email válido e senha entre 8 e 128 caracteres"
-    );
-  }
-
-  return { nome, email, senha };
-}
-
 function validarLogin(data: unknown) {
   if (typeof data !== "object" || data === null) {
     throw new AuthCredenciaisInvalidasError("Email ou senha inválidos");
@@ -83,31 +54,10 @@ function validarLogin(data: unknown) {
 }
 
 export const authService = {
-  async cadastrar(data: unknown) {
-    const dados = validarCadastro(data);
-    if (await authRepository.buscarPorEmail(dados.email)) {
-      throw new AuthEmailDuplicadoError("Email já cadastrado");
-    }
-
-    try {
-      const usuario = await authRepository.criarUsuario({
-        nome: dados.nome,
-        email: dados.email,
-        senhaHash: await gerarHashSenha(dados.senha),
-      });
-      return usuarioPublico(usuario);
-    } catch (error) {
-      if (emailDuplicadoNoBanco(error)) {
-        throw new AuthEmailDuplicadoError("Email já cadastrado");
-      }
-      throw error;
-    }
-  },
-
   async login(data: unknown) {
     const dados = validarLogin(data);
     const usuario = await authRepository.buscarPorEmail(dados.email);
-    if (!usuario || !(await verificarSenha(dados.senha, usuario.senhaHash))) {
+    if (!usuario || usuario.papel !== "Admin" || !(await verificarSenha(dados.senha, usuario.senhaHash))) {
       throw new AuthCredenciaisInvalidasError("Email ou senha inválidos");
     }
 

@@ -18,16 +18,28 @@ export const ROTULOS_STATUS: Record<StatusPedido | "Todos", string> = {
   Cancelado: "Cancelado",
 };
 
-export const PERIODOS_PEDIDO = ["Hoje", "EsteMes", "EsteAno", "Todos"] as const;
-export type PeriodoPedido = (typeof PERIODOS_PEDIDO)[number];
 export type StatusFiltroPedido = (typeof STATUS_FILTRO_PEDIDO)[number];
 
-export const ROTULOS_PERIODO: Record<PeriodoPedido, string> = {
-  Hoje: "Hoje",
-  EsteMes: "Este mês",
-  EsteAno: "Este ano",
-  Todos: "Todos",
+export type FiltrosDataPedido = {
+  dia: number | null;
+  mes: number | null;
+  ano: number | null;
 };
+
+export const MESES = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+] as const;
 
 export const LIMITE_PADRAO_PEDIDOS = 10;
 export const LIMITE_MAXIMO_PEDIDOS = 50;
@@ -44,14 +56,6 @@ function validarValorUnico(valor: unknown, nome: string) {
     throw new ParametrosFiltroInvalidosError(`Parâmetro ${nome} inválido`);
   }
   return valor;
-}
-
-export function normalizarPeriodo(valor: unknown): PeriodoPedido {
-  const periodo = validarValorUnico(valor, "periodo") ?? "Todos";
-  if (!PERIODOS_PEDIDO.includes(periodo as PeriodoPedido)) {
-    throw new ParametrosFiltroInvalidosError("Período inválido");
-  }
-  return periodo as PeriodoPedido;
 }
 
 function normalizarInteiroPositivo(
@@ -72,6 +76,45 @@ function normalizarInteiroPositivo(
   return numero;
 }
 
+function normalizarParteData(
+  valor: unknown,
+  nome: string,
+  minimo: number,
+  maximo: number,
+) {
+  const recebido = validarValorUnico(valor, nome);
+  if (recebido === undefined || recebido === "" || recebido === "Todos") return null;
+  if (!/^\d+$/.test(recebido)) {
+    throw new ParametrosFiltroInvalidosError(`Parâmetro ${nome} inválido`);
+  }
+  const numero = Number(recebido);
+  if (!Number.isSafeInteger(numero) || numero < minimo || numero > maximo) {
+    throw new ParametrosFiltroInvalidosError(`Parâmetro ${nome} inválido`);
+  }
+  return numero;
+}
+
+export function normalizarFiltrosData(parametros: ParametrosBusca): FiltrosDataPedido {
+  const anoAtual = partesNoFuso(new Date()).ano;
+  const dia = normalizarParteData(parametros.dia, "dia", 1, 31);
+  const mes = normalizarParteData(parametros.mes, "mes", 1, 12);
+  const ano = normalizarParteData(parametros.ano, "ano", 2000, anoAtual + 1);
+
+  if (dia !== null && (mes === null || ano === null)) {
+    throw new ParametrosFiltroInvalidosError("Dia exige mês e ano");
+  }
+  if (mes !== null && ano === null) {
+    throw new ParametrosFiltroInvalidosError("Mês exige ano");
+  }
+  if (dia !== null) {
+    const data = new Date(Date.UTC(ano!, mes! - 1, dia));
+    if (data.getUTCFullYear() !== ano || data.getUTCMonth() !== mes! - 1 || data.getUTCDate() !== dia) {
+      throw new ParametrosFiltroInvalidosError("Data inválida");
+    }
+  }
+  return { dia, mes, ano };
+}
+
 export function normalizarFiltrosPedidos(parametros: ParametrosBusca) {
   const statusRecebido = validarValorUnico(parametros.status, "status") ?? "Todos";
   if (statusRecebido !== "Todos" && !STATUS_PEDIDO.includes(statusRecebido as StatusPedido)) {
@@ -80,7 +123,7 @@ export function normalizarFiltrosPedidos(parametros: ParametrosBusca) {
 
   return {
     status: statusRecebido as StatusFiltroPedido,
-    periodo: normalizarPeriodo(parametros.periodo),
+    ...normalizarFiltrosData(parametros),
     page: normalizarInteiroPositivo(parametros.page, "page", 1),
     limit: normalizarInteiroPositivo(
       parametros.limit,
@@ -143,24 +186,33 @@ function meiaNoiteLocalEmUtc(ano: number, mes: number, dia: number) {
   return new Date(instante);
 }
 
-export function obterIntervaloPeriodo(periodo: PeriodoPedido, agora = new Date()) {
-  if (periodo === "Todos") return undefined;
-  const { ano, mes, dia } = partesNoFuso(agora);
-
-  if (periodo === "Hoje") {
+export function obterIntervaloData(filtros: FiltrosDataPedido) {
+  if (filtros.ano === null) return undefined;
+  if (filtros.dia !== null) {
     return {
-      gte: meiaNoiteLocalEmUtc(ano, mes, dia),
-      lt: meiaNoiteLocalEmUtc(ano, mes, dia + 1),
+      gte: meiaNoiteLocalEmUtc(filtros.ano, filtros.mes!, filtros.dia),
+      lt: meiaNoiteLocalEmUtc(filtros.ano, filtros.mes!, filtros.dia + 1),
     };
   }
-  if (periodo === "EsteMes") {
+  if (filtros.mes !== null) {
     return {
-      gte: meiaNoiteLocalEmUtc(ano, mes, 1),
-      lt: meiaNoiteLocalEmUtc(ano, mes + 1, 1),
+      gte: meiaNoiteLocalEmUtc(filtros.ano, filtros.mes, 1),
+      lt: meiaNoiteLocalEmUtc(filtros.ano, filtros.mes + 1, 1),
     };
   }
   return {
-    gte: meiaNoiteLocalEmUtc(ano, 1, 1),
-    lt: meiaNoiteLocalEmUtc(ano + 1, 1, 1),
+    gte: meiaNoiteLocalEmUtc(filtros.ano, 1, 1),
+    lt: meiaNoiteLocalEmUtc(filtros.ano + 1, 1, 1),
   };
+}
+
+export function calcularAnosDisponiveis(dataMaisAntiga: Date | null, agora = new Date()) {
+  const anoAtual = partesNoFuso(agora).ano;
+  const primeiroAno = dataMaisAntiga
+    ? Math.min(partesNoFuso(dataMaisAntiga).ano, anoAtual)
+    : anoAtual;
+  return Array.from(
+    { length: anoAtual - primeiroAno + 1 },
+    (_, indice) => anoAtual - indice,
+  );
 }

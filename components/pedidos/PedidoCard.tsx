@@ -20,6 +20,16 @@ const estiloStatus: Record<Pedido["status"], string> = {
   Cancelado: "bg-gray-200 text-gray-700",
 };
 
+function formatarTelefone(telefone: string) {
+  return telefone.length === 11
+    ? telefone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3")
+    : telefone.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
+}
+
+function formatarCep(cep: string) {
+  return cep.replace(/^(\d{5})(\d{3})$/, "$1-$2");
+}
+
 export function PedidoCard({ pedido, children }: PedidoCardProps) {
   return (
     <article className="space-y-3 rounded-xl bg-white p-4 shadow">
@@ -35,6 +45,23 @@ export function PedidoCard({ pedido, children }: PedidoCardProps) {
           {ROTULOS_STATUS[pedido.status]}
         </span>
       </div>
+
+      {pedido.nomeCliente && pedido.telefone && pedido.cep && pedido.rua && pedido.numero && pedido.bairro ? (
+        <div className="border-t pt-3 text-sm">
+          <p><span className="font-semibold">Cliente:</span> {pedido.nomeCliente} · {formatarTelefone(pedido.telefone)}</p>
+          <details className="mt-2 rounded-md bg-gray-50 p-2">
+            <summary className="cursor-pointer font-semibold text-red-700">Ver dados da entrega</summary>
+            <div className="mt-2 space-y-1 text-gray-600">
+              <p>CEP {formatarCep(pedido.cep)}</p>
+              <p>{pedido.rua}, {pedido.numero} · {pedido.bairro}</p>
+              {pedido.complemento && <p>Complemento: {pedido.complemento}</p>}
+              {pedido.referencia && <p>Referência: {pedido.referencia}</p>}
+            </div>
+          </details>
+        </div>
+      ) : (
+        <p className="border-t pt-3 text-sm text-gray-500">Dados de entrega não registrados</p>
+      )}
 
       <div className="divide-y">
         {pedido.itens.map((item) => (
