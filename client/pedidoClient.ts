@@ -1,5 +1,6 @@
 import type { NomeBorda, NomeBordaRecheada, TamanhoProduto } from "@/lib/catalogo";
-import type { DadosEntrega } from "@/lib/checkout";
+import type { DadosCheckout, FormaPagamento } from "@/lib/checkout";
+import type { MetodoEntrega } from "@/lib/pedido";
 import {
   STATUS_PEDIDO,
   type FiltrosDataPedido,
@@ -10,8 +11,11 @@ import {
 export { STATUS_PEDIDO };
 export type { StatusPedido };
 
+export const STATUS_RECEBIMENTO = ["Pendente", "Pago", "Falhou"] as const;
+export type StatusRecebimento = (typeof STATUS_RECEBIMENTO)[number];
+
 export type CriarPedidoData = {
-  dadosEntrega: DadosEntrega;
+  dadosCheckout: DadosCheckout;
   itens: {
     produtoId: number;
     tamanho: TamanhoProduto;
@@ -42,11 +46,24 @@ export type Pedido = {
   bairro: string | null;
   complemento: string | null;
   referencia: string | null;
+  metodoEntrega: MetodoEntrega | null;
   valorTotal: number;
   taxaEntrega: number;
   status: StatusPedido;
   criadoEm: string;
+  recebimento: {
+    id: number;
+    valor: number;
+    formaPagamento: FormaPagamento;
+    status: StatusRecebimento;
+    criadoEm: string;
+    atualizadoEm: string;
+  } | null;
   itens: ItemPedido[];
+};
+
+export type PedidoPublico = Pick<Pedido, "id" | "criadoEm" | "metodoEntrega" | "valorTotal" | "taxaEntrega" | "status" | "itens"> & {
+  recebimento: Pick<NonNullable<Pedido["recebimento"]>, "valor" | "formaPagamento" | "status"> | null;
 };
 
 export type PaginaPedidos = {
@@ -131,4 +148,33 @@ export async function atualizarStatusPedido(
   }
 
   return response.json();
+}
+
+export async function atualizarStatusRecebimento(
+  id: number,
+  status: StatusRecebimento,
+) {
+  const response = await fetch(`/api/pedidos/${id}/recebimento/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) {
+    const resposta = await response.json().catch(() => null);
+    throw new Error(resposta?.erro ?? "Erro ao atualizar recebimento");
+  }
+  return response.json();
+}
+
+export async function acompanharPedido(pedidoId: string, telefone: string): Promise<PedidoPublico> {
+  const response = await fetch("/api/acompanhar-pedido", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pedidoId, telefone }),
+  });
+  const resposta = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(resposta?.erro ?? "Pedido não encontrado com os dados informados.");
+  }
+  return resposta;
 }

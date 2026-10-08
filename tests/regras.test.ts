@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { itensTemMesmaConfiguracao } from "../lib/carrinho";
-import { aplicarDesconto, buscarBorda } from "../lib/catalogo";
-import { DadosEntregaInvalidosError, normalizarDadosEntrega } from "../lib/checkout";
+import { aplicarDesconto, buscarBorda, TAMANHOS } from "../lib/catalogo";
+import {
+  DadosEntregaInvalidosError,
+  FORMAS_PAGAMENTO,
+  normalizarDadosEntrega,
+  normalizarTelefone,
+} from "../lib/checkout";
 import { calcularTaxaEntregaEmCentavos } from "../lib/pedido";
+import { criarTimeline } from "../lib/acompanhamento";
 import {
   STATUS_FILTRO_PEDIDO,
   STATUS_EXCLUIDO_RECEITA,
@@ -15,6 +21,10 @@ import {
   obterIntervaloData,
 } from "../lib/filtrosPedido";
 import { registrarTentativaPedido, verificarLimitePedido } from "../server/auth/limitePedido";
+import {
+  registrarTentativaAcompanhamento,
+  verificarLimiteAcompanhamento,
+} from "../server/auth/limiteAcompanhamento";
 
 test("cobra entrega para subtotal de R$ 79,99", () => {
   assert.equal(calcularTaxaEntregaEmCentavos(7999), 800);
@@ -23,6 +33,28 @@ test("cobra entrega para subtotal de R$ 79,99", () => {
 test("oferece entrega grátis a partir de R$ 80,00", () => {
   assert.equal(calcularTaxaEntregaEmCentavos(8000), 0);
   assert.equal(calcularTaxaEntregaEmCentavos(10000), 0);
+});
+
+test("retirada nunca cobra taxa", () => {
+  assert.equal(calcularTaxaEntregaEmCentavos(0, "Retirada"), 0);
+  assert.equal(calcularTaxaEntregaEmCentavos(7999, "Retirada"), 0);
+  assert.equal(calcularTaxaEntregaEmCentavos(10000, "Retirada"), 0);
+});
+
+test("catálogo reconhece Gigante sem atribuir preço", () => {
+  assert.deepEqual(TAMANHOS, ["Pequena", "Média", "Grande", "Gigante"]);
+});
+
+test("formas de pagamento são uma lista fechada", () => {
+  assert.deepEqual(FORMAS_PAGAMENTO, ["Dinheiro", "Cartão", "Pix", "Boleto"]);
+  for (const formaPagamento of FORMAS_PAGAMENTO) {
+    assert.equal(normalizarDadosEntrega({
+      nomeCliente: "Maria da Silva",
+      telefone: "11999999999",
+      metodoEntrega: "Retirada",
+      formaPagamento,
+    }).formaPagamento, formaPagamento);
+  }
 });
 
 test("calcula promoção com arredondamento em centavos", () => {
@@ -152,6 +184,8 @@ test("normaliza dados válidos do checkout", () => {
     bairro: " Centro ",
     complemento: "   ",
     referencia: " Próximo   à praça ",
+    metodoEntrega: "Entrega",
+    formaPagamento: "Pix",
   }), {
     nomeCliente: "Maria da Silva",
     telefone: "11999999999",
@@ -161,6 +195,28 @@ test("normaliza dados válidos do checkout", () => {
     bairro: "Centro",
     complemento: null,
     referencia: "Próximo à praça",
+    metodoEntrega: "Entrega",
+    formaPagamento: "Pix",
+  });
+});
+
+test("retirada exige apenas dados pessoais, método e pagamento", () => {
+  assert.deepEqual(normalizarDadosEntrega({
+    nomeCliente: "Maria da Silva",
+    telefone: "(11) 99999-9999",
+    metodoEntrega: "Retirada",
+    formaPagamento: "Cartão",
+  }), {
+    nomeCliente: "Maria da Silva",
+    telefone: "11999999999",
+    metodoEntrega: "Retirada",
+    formaPagamento: "Cartão",
+    cep: null,
+    rua: null,
+    numero: null,
+    bairro: null,
+    complemento: null,
+    referencia: null,
   });
 });
 
@@ -174,6 +230,8 @@ test("rejeita campos obrigatórios e formatos inválidos do checkout", () => {
     bairro: "Centro",
     complemento: "",
     referencia: "",
+    metodoEntrega: "Entrega",
+    formaPagamento: "Dinheiro",
   };
   const invalidos = [
     { ...base, nomeCliente: "" },
@@ -182,6 +240,8 @@ test("rejeita campos obrigatórios e formatos inválidos do checkout", () => {
     { ...base, rua: "" },
     { ...base, numero: "" },
     { ...base, bairro: "" },
+    { ...base, metodoEntrega: "Motoboy" },
+    { ...base, formaPagamento: "Criptomoeda" },
   ];
   for (const dados of invalidos) {
     assert.throws(() => normalizarDadosEntrega(dados), DadosEntregaInvalidosError);
@@ -193,6 +253,23 @@ test("rejeita campos obrigatórios e formatos inválidos do checkout", () => {
   });
 });
 
+test("normaliza telefone nacional e com DDI", () => {
+  assert.equal(normalizarTelefone("(11) 99999-9999"), "11999999999");
+  assert.equal(normalizarTelefone("+55 11 99999-9999"), "11999999999");
+});
+
+test("timeline reflete status real sem modificá-lo", () => {
+  const preparo = criarTimeline("EmPreparo", "Entrega");
+  assert.equal(preparo.etapas[1].atual, true);
+  assert.equal(preparo.etapas[2].concluida, false);
+  const entregue = criarTimeline("Entregue", "Entrega");
+  assert.equal(entregue.etapas.every((etapa) => etapa.concluida), true);
+  const cancelado = criarTimeline("Cancelado", "Retirada");
+  assert.equal(cancelado.cancelado, true);
+  const historico = criarTimeline("Pendente", null);
+  assert.equal(historico.estimativa, "Estimativa indisponível para pedido histórico");
+});
+
 test("limita tentativas excessivas de pedido público", () => {
   const chave = "teste-pedido-publico";
   for (let tentativa = 0; tentativa < 20; tentativa += 1) {
@@ -200,4 +277,13 @@ test("limita tentativas excessivas de pedido público", () => {
     registrarTentativaPedido(chave);
   }
   assert.ok((verificarLimitePedido(chave) ?? 0) > 0);
+});
+
+test("limita enumeração no acompanhamento público", () => {
+  const chave = "teste-acompanhamento-publico";
+  for (let tentativa = 0; tentativa < 10; tentativa += 1) {
+    assert.equal(verificarLimiteAcompanhamento(chave), null);
+    registrarTentativaAcompanhamento(chave);
+  }
+  assert.ok((verificarLimiteAcompanhamento(chave) ?? 0) > 0);
 });

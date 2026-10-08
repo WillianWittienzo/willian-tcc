@@ -1,8 +1,24 @@
-import { NomeBorda as NomeBordaBanco, NomeTamanho, StatusPedido } from "@/app/generated/prisma/client";
+import {
+  FormaPagamento,
+  MetodoEntrega,
+  NomeBorda as NomeBordaBanco,
+  NomeTamanho,
+  StatusPedido,
+  StatusRecebimento,
+} from "@/app/generated/prisma/client";
 import { aplicarDesconto, buscarBorda, TAMANHOS, type NomeBorda } from "@/lib/catalogo";
-import { DadosEntregaInvalidosError, normalizarDadosEntrega } from "@/lib/checkout";
+import {
+  DadosEntregaInvalidosError,
+  normalizarDadosCheckout,
+  normalizarTelefone,
+} from "@/lib/checkout";
 import { calcularTaxaEntregaEmCentavos } from "@/lib/pedido";
-import { calcularAnosDisponiveis, calcularTotalPaginas, normalizarFiltrosPedidos, obterIntervaloData } from "@/lib/filtrosPedido";
+import {
+  calcularAnosDisponiveis,
+  calcularTotalPaginas,
+  normalizarFiltrosPedidos,
+  obterIntervaloData,
+} from "@/lib/filtrosPedido";
 import { pedidoRepository } from "@/server/repositories/pedidoRepository";
 
 type TamanhoPedido = (typeof TAMANHOS)[number];
@@ -11,7 +27,11 @@ type ItemRecebido = { produtoId: number; tamanho: TamanhoPedido; borda: NomeBord
 export class PedidoInvalidoError extends Error {}
 export class PedidoNaoEncontradoError extends Error {}
 
-type PedidoPersistido = Awaited<ReturnType<typeof pedidoRepository.criar>>;
+type PedidoPersistido = NonNullable<Awaited<ReturnType<typeof pedidoRepository.buscarPublico>>>;
+
+function formatarFormaPagamento(forma: FormaPagamento) {
+  return forma === FormaPagamento.Cartao ? "Cartão" : forma;
+}
 
 function formatarPedido(pedido: PedidoPersistido) {
   return {
@@ -25,10 +45,19 @@ function formatarPedido(pedido: PedidoPersistido) {
     bairro: pedido.bairro,
     complemento: pedido.complemento,
     referencia: pedido.referencia,
+    metodoEntrega: pedido.metodoEntrega,
     valorTotal: Number(pedido.valorTotal),
     taxaEntrega: Number(pedido.taxaEntrega),
     status: pedido.status,
     criadoEm: pedido.criadoEm,
+    recebimento: pedido.recebimento ? {
+      id: pedido.recebimento.id,
+      valor: Number(pedido.recebimento.valor),
+      formaPagamento: formatarFormaPagamento(pedido.recebimento.formaPagamento),
+      status: pedido.recebimento.status,
+      criadoEm: pedido.recebimento.criadoEm,
+      atualizadoEm: pedido.recebimento.atualizadoEm,
+    } : null,
     itens: pedido.itens.map((item) => ({
       id: item.id,
       produtoId: item.produtoId,
@@ -39,6 +68,24 @@ function formatarPedido(pedido: PedidoPersistido) {
       quantidade: item.quantidade,
       precoUnitario: Number(item.precoUnitario),
     })),
+  };
+}
+
+function formatarPedidoPublico(pedido: PedidoPersistido) {
+  const formatado = formatarPedido(pedido);
+  return {
+    id: formatado.id,
+    criadoEm: formatado.criadoEm,
+    metodoEntrega: formatado.metodoEntrega,
+    valorTotal: formatado.valorTotal,
+    taxaEntrega: formatado.taxaEntrega,
+    status: formatado.status,
+    recebimento: formatado.recebimento && {
+      valor: formatado.recebimento.valor,
+      formaPagamento: formatado.recebimento.formaPagamento,
+      status: formatado.recebimento.status,
+    },
+    itens: formatado.itens,
   };
 }
 
@@ -69,11 +116,22 @@ function converterTamanho(tamanho: TamanhoPedido) {
   return tamanho === "Média" ? NomeTamanho.Media : NomeTamanho[tamanho];
 }
 
+function converterFormaPagamento(forma: string) {
+  return forma === "Cartão" ? FormaPagamento.Cartao : FormaPagamento[forma as keyof typeof FormaPagamento];
+}
+
 function obterStatus(data: unknown) {
   if (typeof data !== "object" || data === null || !("status" in data) || typeof data.status !== "string" || !Object.values(StatusPedido).includes(data.status as StatusPedido)) {
     throw new PedidoInvalidoError("Status do pedido inválido");
   }
   return data.status as StatusPedido;
+}
+
+function obterStatusRecebimento(data: unknown) {
+  if (typeof data !== "object" || data === null || !("status" in data) || typeof data.status !== "string" || !Object.values(StatusRecebimento).includes(data.status as StatusRecebimento)) {
+    throw new PedidoInvalidoError("Status do recebimento inválido");
+  }
+  return data.status as StatusRecebimento;
 }
 
 function registroNaoEncontrado(error: unknown) {
@@ -98,24 +156,25 @@ export const pedidoService = {
       anosDisponiveis: calcularAnosDisponiveis(pedidoMaisAntigo?.criadoEm ?? null),
     };
   },
+
   async listarDoCliente(clienteId: number) {
     return (await pedidoRepository.listarDoCliente(clienteId)).map(formatarPedido);
   },
+
   async criar(data: unknown) {
     const itensRecebidos = validarItens(data);
-    let dadosEntrega;
+    let checkout;
     try {
-      dadosEntrega = normalizarDadosEntrega(
-        typeof data === "object" && data !== null && "dadosEntrega" in data
-          ? data.dadosEntrega
+      checkout = normalizarDadosCheckout(
+        typeof data === "object" && data !== null && "dadosCheckout" in data
+          ? data.dadosCheckout
           : null,
       );
     } catch (error) {
-      if (error instanceof DadosEntregaInvalidosError) {
-        throw new PedidoInvalidoError(error.message);
-      }
+      if (error instanceof DadosEntregaInvalidosError) throw new PedidoInvalidoError(error.message);
       throw error;
     }
+
     const produtoIds = [...new Set(itensRecebidos.map((item) => item.produtoId))];
     const produtos = await pedidoRepository.buscarProdutosComTamanhos(produtoIds);
     const produtosPorId = new Map(produtos.map((produto) => [produto.id, produto]));
@@ -145,15 +204,26 @@ export const pedidoService = {
       };
     });
 
-    const taxaEntregaEmCentavos = calcularTaxaEntregaEmCentavos(subtotalEmCentavos);
+    const taxaEntregaEmCentavos = calcularTaxaEntregaEmCentavos(subtotalEmCentavos, checkout.metodoEntrega);
+    const valorTotal = (subtotalEmCentavos + taxaEntregaEmCentavos) / 100;
     return formatarPedido(await pedidoRepository.criar({
       clienteId: null,
-      ...dadosEntrega,
+      nomeCliente: checkout.nomeCliente,
+      telefone: checkout.telefone,
+      cep: checkout.cep,
+      rua: checkout.rua,
+      numero: checkout.numero,
+      bairro: checkout.bairro,
+      complemento: checkout.complemento,
+      referencia: checkout.referencia,
+      metodoEntrega: MetodoEntrega[checkout.metodoEntrega],
+      formaPagamento: converterFormaPagamento(checkout.formaPagamento),
       taxaEntrega: taxaEntregaEmCentavos / 100,
-      valorTotal: (subtotalEmCentavos + taxaEntregaEmCentavos) / 100,
+      valorTotal,
       itens,
     }));
   },
+
   async atualizarStatus(id: number, data: unknown) {
     if (!Number.isInteger(id) || id <= 0) throw new PedidoInvalidoError("ID do pedido inválido");
     const status = obterStatus(data);
@@ -163,5 +233,45 @@ export const pedidoService = {
       if (registroNaoEncontrado(error)) throw new PedidoNaoEncontradoError("Pedido não encontrado");
       throw error;
     }
+  },
+
+  async atualizarStatusRecebimento(id: number, data: unknown) {
+    if (!Number.isInteger(id) || id <= 0) throw new PedidoInvalidoError("ID do pedido inválido");
+    const status = obterStatusRecebimento(data);
+    try {
+      const recebimento = await pedidoRepository.atualizarStatusRecebimento(id, status);
+      return {
+        valor: Number(recebimento.valor),
+        formaPagamento: formatarFormaPagamento(recebimento.formaPagamento),
+        status: recebimento.status,
+      };
+    } catch (error) {
+      if (registroNaoEncontrado(error)) throw new PedidoNaoEncontradoError("Recebimento não encontrado");
+      throw error;
+    }
+  },
+
+  async acompanhar(data: unknown) {
+    if (typeof data !== "object" || data === null || Array.isArray(data)) {
+      throw new PedidoNaoEncontradoError("Pedido não encontrado com os dados informados.");
+    }
+    const recebido = data as Record<string, unknown>;
+    const idBruto = recebido.pedidoId;
+    if ((typeof idBruto !== "string" && typeof idBruto !== "number") || String(idBruto).length > 10) {
+      throw new PedidoNaoEncontradoError("Pedido não encontrado com os dados informados.");
+    }
+    const id = Number(idBruto);
+    let telefone: string;
+    try {
+      telefone = normalizarTelefone(recebido.telefone);
+    } catch {
+      throw new PedidoNaoEncontradoError("Pedido não encontrado com os dados informados.");
+    }
+    if (!Number.isInteger(id) || id <= 0) {
+      throw new PedidoNaoEncontradoError("Pedido não encontrado com os dados informados.");
+    }
+    const pedido = await pedidoRepository.buscarPublico(id, telefone);
+    if (!pedido) throw new PedidoNaoEncontradoError("Pedido não encontrado com os dados informados.");
+    return formatarPedidoPublico(pedido);
   },
 };

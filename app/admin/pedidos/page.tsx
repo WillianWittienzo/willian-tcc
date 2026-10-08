@@ -3,10 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   atualizarStatusPedido,
+  atualizarStatusRecebimento,
   listarPedidos,
   STATUS_PEDIDO,
+  STATUS_RECEBIMENTO,
   type Pedido,
   type StatusPedido,
+  type StatusRecebimento,
 } from "@/client/pedidoClient";
 import { PedidoCard } from "@/components/pedidos/PedidoCard";
 import { FiltrosData } from "@/components/adm/FiltrosData";
@@ -24,6 +27,7 @@ export default function PedidosPage() {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [pedidoAtualizando, setPedidoAtualizando] = useState<number | null>(null);
+  const [recebimentoAtualizando, setRecebimentoAtualizando] = useState<number | null>(null);
   const [status, setStatus] = useState<StatusFiltroPedido>("Todos");
   const [filtrosData, setFiltrosData] = useState<FiltrosDataPedido>({ dia: null, mes: null, ano: null });
   const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
@@ -76,6 +80,18 @@ export default function PedidosPage() {
       );
     } finally {
       setPedidoAtualizando(null);
+    }
+  }
+
+  async function alterarRecebimento(id: number, status: StatusRecebimento) {
+    setRecebimentoAtualizando(id);
+    try {
+      await atualizarStatusRecebimento(id, status);
+      await carregarPedidos();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Erro ao atualizar recebimento");
+    } finally {
+      setRecebimentoAtualizando(null);
     }
   }
 
@@ -160,6 +176,24 @@ export default function PedidosPage() {
                     </option>
                   ))}
                 </select>
+                {pedido.recebimento ? (
+                  <label htmlFor={`recebimento-${pedido.id}`} className="mt-4 block text-sm font-semibold">
+                    Status do recebimento
+                    <select
+                      id={`recebimento-${pedido.id}`}
+                      value={pedido.recebimento.status}
+                      disabled={recebimentoAtualizando === pedido.id}
+                      onChange={(event) => alterarRecebimento(pedido.id, event.target.value as StatusRecebimento)}
+                      className="mt-2 w-full rounded-md border p-2 font-normal disabled:opacity-50"
+                    >
+                      {STATUS_RECEBIMENTO.map((statusRecebimento) => (
+                        <option key={statusRecebimento} value={statusRecebimento}>{statusRecebimento}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <p className="mt-4 text-sm text-gray-500">Recebimento histórico não registrado.</p>
+                )}
               </div>
             </PedidoCard>
           ))}

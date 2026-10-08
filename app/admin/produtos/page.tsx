@@ -24,6 +24,7 @@ export default function AdminProdutos() {
   const [precoPequena, setPrecoPequena] = useState("");
   const [precoMedia, setPrecoMedia] = useState("");
   const [precoGrande, setPrecoGrande] = useState("");
+  const [precoGigante, setPrecoGigante] = useState("");
   const [image, setImage] = useState("");
   const [desconto, setDesconto] = useState("");
   const [imagemComErro, setImagemComErro] = useState(false);
@@ -34,7 +35,7 @@ export default function AdminProdutos() {
   }, []);
 
   function limparFormulario() {
-    setNome(""); setDescricao(""); setPrecoPequena(""); setPrecoMedia(""); setPrecoGrande("");
+    setNome(""); setDescricao(""); setPrecoPequena(""); setPrecoMedia(""); setPrecoGrande(""); setPrecoGigante("");
     setImage(""); setDesconto(""); setImagemComErro(false); setCategoria("Tradicional"); setProdutoEmEdicao(null); setErro("");
   }
 
@@ -51,6 +52,7 @@ export default function AdminProdutos() {
     setPrecoPequena(String(produto.tamanhos.find((t) => t.nome === "Pequena")?.preco ?? ""));
     setPrecoMedia(String(produto.tamanhos.find((t) => t.nome === "Média")?.preco ?? ""));
     setPrecoGrande(String(produto.tamanhos.find((t) => t.nome === "Grande")?.preco ?? ""));
+    setPrecoGigante(String(produto.tamanhos.find((t) => t.nome === "Gigante")?.preco ?? ""));
     setErro(""); setModalAberto(true);
   }
 
@@ -75,6 +77,7 @@ export default function AdminProdutos() {
         { nome: "Pequena" as const, preco: Number(precoPequena) },
         { nome: "Média" as const, preco: Number(precoMedia) },
         { nome: "Grande" as const, preco: Number(precoGrande) },
+        ...(precoGigante === "" ? [] : [{ nome: "Gigante" as const, preco: Number(precoGigante) }]),
       ],
     };
     try {
@@ -112,6 +115,8 @@ export default function AdminProdutos() {
               <input type="number" min="0.01" max="10000" step="0.01" placeholder="Preço Pequena" value={precoPequena} onChange={(e) => setPrecoPequena(e.target.value)} className="w-full border p-2 rounded-md" required />
               <input type="number" min="0.01" max="10000" step="0.01" placeholder="Preço Média" value={precoMedia} onChange={(e) => setPrecoMedia(e.target.value)} className="w-full border p-2 rounded-md" required />
               <input type="number" min="0.01" max="10000" step="0.01" placeholder="Preço Grande" value={precoGrande} onChange={(e) => setPrecoGrande(e.target.value)} className="w-full border p-2 rounded-md" required />
+              <label className="block text-sm font-medium">Preço Gigante (opcional)</label>
+              <input type="number" min="0.01" max="10000" step="0.01" placeholder="Deixe vazio para não oferecer" value={precoGigante} onChange={(e) => setPrecoGigante(e.target.value)} className="w-full border p-2 rounded-md" />
               <label className="block text-sm font-medium">Promoção (% de desconto, deixe vazio para desativar)</label>
               <input type="number" min="1" max="90" step="1" placeholder="Ex.: 15" value={desconto} onChange={(e) => setDesconto(e.target.value)} className="w-full border p-2 rounded-md" />
               <label className="block text-sm font-medium">Imagem (caminho local ou URL HTTPS)</label>

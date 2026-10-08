@@ -1,18 +1,27 @@
-import { NomeBorda, NomeTamanho, StatusPedido } from "@/app/generated/prisma/client";
+import {
+  FormaPagamento,
+  MetodoEntrega,
+  NomeBorda,
+  NomeTamanho,
+  StatusPedido,
+  StatusRecebimento,
+} from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 type CriarPedidoData = {
   clienteId: number | null;
   nomeCliente: string;
   telefone: string;
-  cep: string;
-  rua: string;
-  numero: string;
-  bairro: string;
+  cep: string | null;
+  rua: string | null;
+  numero: string | null;
+  bairro: string | null;
   complemento: string | null;
   referencia: string | null;
   valorTotal: number;
   taxaEntrega: number;
+  metodoEntrega: MetodoEntrega;
+  formaPagamento: FormaPagamento;
   itens: {
     produtoId: number;
     nomeProduto: string;
@@ -24,7 +33,10 @@ type CriarPedidoData = {
   }[];
 };
 
-const incluirItens = { itens: { orderBy: { id: "asc" as const } } };
+const incluirPedido = {
+  itens: { orderBy: { id: "asc" as const } },
+  recebimento: true,
+};
 
 export const pedidoRepository = {
   async listarTodos(filtros: {
@@ -41,7 +53,7 @@ export const pedidoRepository = {
       prisma.pedido.count({ where }),
       prisma.pedido.findMany({
         where,
-        include: incluirItens,
+        include: incluirPedido,
         orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
         skip: filtros.skip,
         take: filtros.take,
@@ -51,7 +63,7 @@ export const pedidoRepository = {
     return { total, pedidos, pedidoMaisAntigo };
   },
   listarDoCliente(clienteId: number) {
-    return prisma.pedido.findMany({ where: { clienteId }, include: incluirItens, orderBy: [{ criadoEm: "desc" }, { id: "desc" }] });
+    return prisma.pedido.findMany({ where: { clienteId }, include: incluirPedido, orderBy: [{ criadoEm: "desc" }, { id: "desc" }] });
   },
   buscarProdutosComTamanhos(produtoIds: number[]) {
     return prisma.produto.findMany({ where: { id: { in: produtoIds } }, include: { tamanhos: true } });
@@ -70,12 +82,31 @@ export const pedidoRepository = {
         referencia: data.referencia,
         valorTotal: data.valorTotal,
         taxaEntrega: data.taxaEntrega,
+        metodoEntrega: data.metodoEntrega,
         itens: { create: data.itens },
+        recebimento: {
+          create: {
+            valor: data.valorTotal,
+            formaPagamento: data.formaPagamento,
+          },
+        },
       },
-      include: incluirItens,
+      include: incluirPedido,
     });
   },
   atualizarStatus(id: number, status: StatusPedido) {
-    return prisma.pedido.update({ where: { id }, data: { status }, include: incluirItens });
+    return prisma.pedido.update({ where: { id }, data: { status }, include: incluirPedido });
+  },
+  atualizarStatusRecebimento(pedidoId: number, status: StatusRecebimento) {
+    return prisma.recebimento.update({
+      where: { pedidoId },
+      data: { status },
+    });
+  },
+  buscarPublico(id: number, telefone: string) {
+    return prisma.pedido.findFirst({
+      where: { id, telefone },
+      include: incluirPedido,
+    });
   },
 };

@@ -1,0 +1,20 @@
+import { NextRequest, NextResponse } from "next/server";
+import { pedidoController } from "@/server/controllers/pedidoController";
+import { verificarAdmin } from "@/server/auth/autorizacao";
+import { requisicaoDeMesmaOrigem } from "@/server/auth/origem";
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> },
+) {
+  if (!requisicaoDeMesmaOrigem(request)) {
+    return NextResponse.json({ erro: "Origem da requisição não permitida" }, { status: 403 });
+  }
+  const bloqueio = await verificarAdmin(request);
+  if (bloqueio) return NextResponse.json({ erro: bloqueio.erro }, { status: bloqueio.status });
+
+  const { id } = await context.params;
+  const data: unknown = await request.json().catch(() => null);
+  const resultado = await pedidoController.atualizarStatusRecebimento(Number(id), data);
+  return NextResponse.json(resultado.data, { status: resultado.status });
+}

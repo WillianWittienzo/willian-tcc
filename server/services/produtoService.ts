@@ -51,8 +51,8 @@ function validarProduto(data: unknown, permitirImagemVazia = false): ProdutoVali
   if (desconto !== null && (!Number.isInteger(desconto) || Number(desconto) < 1 || Number(desconto) > 90)) {
     throw new ProdutoInvalidoError("O desconto deve ser um inteiro entre 1 e 90");
   }
-  if (!Array.isArray(tamanhos) || tamanhos.length !== TAMANHOS.length) {
-    throw new ProdutoInvalidoError("Informe os três tamanhos da pizza");
+  if (!Array.isArray(tamanhos) || tamanhos.length < 3 || tamanhos.length > TAMANHOS.length) {
+    throw new ProdutoInvalidoError("Informe Pequena, Média e Grande; Gigante é opcional");
   }
 
   const tamanhosValidados = tamanhos.map((tamanho) => {
@@ -67,8 +67,11 @@ function validarProduto(data: unknown, permitirImagemVazia = false): ProdutoVali
     return { nome: nomeTamanho as TamanhoEntrada["nome"], preco: Math.round(preco * 100) / 100 };
   });
 
-  if (new Set(tamanhosValidados.map((tamanho) => tamanho.nome)).size !== TAMANHOS.length) {
+  if (new Set(tamanhosValidados.map((tamanho) => tamanho.nome)).size !== tamanhosValidados.length) {
     throw new ProdutoInvalidoError("Os tamanhos não podem se repetir");
+  }
+  if (!["Pequena", "Média", "Grande"].every((nome) => tamanhosValidados.some((tamanho) => tamanho.nome === nome))) {
+    throw new ProdutoInvalidoError("Pequena, Média e Grande são obrigatórios");
   }
 
   return {

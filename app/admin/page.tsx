@@ -47,13 +47,16 @@ export default function DashboardPage() {
       {erro && <p className="mb-4 rounded bg-red-100 p-3 text-red-800">{erro}</p>}
       {!resumo && !erro && <p className="text-gray-500">Carregando...</p>}
       {resumo && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           <CardDashboard title="Total de Pedidos" value={String(resumo.totalPedidos)} />
           <CardDashboard title="Receita Total" value={moeda.format(resumo.receita)} />
           <CardDashboard title="Clientes" value={String(resumo.clientes)} />
           <CardDashboard title="Produtos cadastrados" value={String(resumo.produtos)} />
+          <CardDashboard title="Recebimentos pendentes" value={String(resumo.recebimentosPendentes)} />
+          <CardDashboard title="Valor recebido" value={moeda.format(resumo.valorRecebido)} />
         </div>
       )}
+      <p className="mt-4 text-xs text-gray-500">Receita considera pedidos não cancelados; valor recebido considera somente recebimentos marcados como Pago.</p>
     </div>
   );
 }

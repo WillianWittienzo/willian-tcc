@@ -46,21 +46,24 @@ export function PedidoCard({ pedido, children }: PedidoCardProps) {
         </span>
       </div>
 
-      {pedido.nomeCliente && pedido.telefone && pedido.cep && pedido.rua && pedido.numero && pedido.bairro ? (
+      {pedido.nomeCliente && pedido.telefone ? (
         <div className="border-t pt-3 text-sm">
           <p><span className="font-semibold">Cliente:</span> {pedido.nomeCliente} · {formatarTelefone(pedido.telefone)}</p>
-          <details className="mt-2 rounded-md bg-gray-50 p-2">
-            <summary className="cursor-pointer font-semibold text-red-700">Ver dados da entrega</summary>
-            <div className="mt-2 space-y-1 text-gray-600">
-              <p>CEP {formatarCep(pedido.cep)}</p>
-              <p>{pedido.rua}, {pedido.numero} · {pedido.bairro}</p>
-              {pedido.complemento && <p>Complemento: {pedido.complemento}</p>}
-              {pedido.referencia && <p>Referência: {pedido.referencia}</p>}
-            </div>
-          </details>
+          <p><span className="font-semibold">Método:</span> {pedido.metodoEntrega === "Retirada" ? "Retirada no local" : pedido.metodoEntrega ?? "Método não registrado"}</p>
+          {pedido.metodoEntrega === "Entrega" && pedido.cep && pedido.rua && pedido.numero && pedido.bairro && (
+            <details className="mt-2 rounded-md bg-gray-50 p-2">
+              <summary className="cursor-pointer font-semibold text-red-700">Ver dados da entrega</summary>
+              <div className="mt-2 space-y-1 text-gray-600">
+                <p>CEP {formatarCep(pedido.cep)}</p>
+                <p>{pedido.rua}, {pedido.numero} · {pedido.bairro}</p>
+                {pedido.complemento && <p>Complemento: {pedido.complemento}</p>}
+                {pedido.referencia && <p>Referência: {pedido.referencia}</p>}
+              </div>
+            </details>
+          )}
         </div>
       ) : (
-        <p className="border-t pt-3 text-sm text-gray-500">Dados de entrega não registrados</p>
+        <p className="border-t pt-3 text-sm text-gray-500">Dados do cliente e método não registrados</p>
       )}
 
       <div className="divide-y">
@@ -88,6 +91,18 @@ export function PedidoCard({ pedido, children }: PedidoCardProps) {
       </div>
 
       <div className="space-y-1 border-t pt-3">
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Pagamento</span>
+          <span>{pedido.recebimento?.formaPagamento ?? "Não registrado"}</span>
+        </div>
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Recebimento</span>
+          <span>{pedido.recebimento?.status ?? "Não registrado"}</span>
+        </div>
+        <div className="flex justify-between text-sm text-gray-600">
+          <span>Valor do recebimento</span>
+          <span>{pedido.recebimento ? moeda.format(pedido.recebimento.valor) : "Não registrado"}</span>
+        </div>
         <div className="flex justify-between text-sm text-gray-600">
           <span>Taxa de entrega</span>
           <span>{moeda.format(pedido.taxaEntrega)}</span>

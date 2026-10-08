@@ -5,6 +5,8 @@ export type ResumoDashboard = {
   receita: number;
   clientes: number;
   produtos: number;
+  recebimentosPendentes: number;
+  valorRecebido: number;
   anosDisponiveis: number[];
 };
 

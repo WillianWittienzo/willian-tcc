@@ -22,6 +22,25 @@ enum NomeTamanho {
   Pequena
   Media
   Grande
+  Gigante
+}
+
+enum MetodoEntrega {
+  Entrega
+  Retirada
+}
+
+enum FormaPagamento {
+  Dinheiro
+  Cartao
+  Pix
+  Boleto
+}
+
+enum StatusRecebimento {
+  Pendente
+  Pago
+  Falhou
 }
 
 enum StatusPedido {
@@ -66,27 +85,43 @@ model ProdutoTamanho {
 }
 
 model Pedido {
-  id          Int          @id @default(autoincrement())
-  clienteId   Int?
-  nomeCliente String?      @db.VarChar(100)
-  telefone    String?      @db.VarChar(11)
-  cep         String?      @db.VarChar(8)
-  rua         String?      @db.VarChar(150)
-  numero      String?      @db.VarChar(20)
-  bairro      String?      @db.VarChar(100)
-  complemento String?      @db.VarChar(150)
-  referencia  String?      @db.VarChar(200)
-  valorTotal  Decimal      @db.Decimal(10, 2)
-  taxaEntrega Decimal      @db.Decimal(10, 2)
-  status      StatusPedido @default(Pendente)
-  criadoEm    DateTime     @default(now())
-  itens       ItemPedido[]
-  cliente     Usuario?     @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+  id            Int            @id @default(autoincrement())
+  clienteId     Int?
+  nomeCliente   String?        @db.VarChar(100)
+  telefone      String?        @db.VarChar(11)
+  cep           String?        @db.VarChar(8)
+  rua           String?        @db.VarChar(150)
+  numero        String?        @db.VarChar(20)
+  bairro        String?        @db.VarChar(100)
+  complemento   String?        @db.VarChar(150)
+  referencia    String?        @db.VarChar(200)
+  valorTotal    Decimal        @db.Decimal(10, 2)
+  taxaEntrega   Decimal        @db.Decimal(10, 2)
+  metodoEntrega MetodoEntrega?
+  status        StatusPedido   @default(Pendente)
+  criadoEm      DateTime       @default(now())
+  itens         ItemPedido[]
+  recebimento   Recebimento?
+  cliente       Usuario?       @relation(fields: [clienteId], references: [id], onDelete: SetNull)
 
   @@index([clienteId])
   @@index([criadoEm])
   @@index([status, criadoEm])
   @@index([telefone])
+}
+
+model Recebimento {
+  id             Int               @id @default(autoincrement())
+  pedidoId       Int               @unique
+  valor          Decimal           @db.Decimal(10, 2)
+  formaPagamento FormaPagamento
+  status         StatusRecebimento @default(Pendente)
+  criadoEm       DateTime          @default(now())
+  atualizadoEm   DateTime          @updatedAt
+  pedido         Pedido            @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([criadoEm])
 }
 
 model Usuario {

@@ -7,7 +7,7 @@ type CriarProdutoData = {
   image: string;
   descontoPercentual: number | null;
   tamanhos: {
-    nome: "Pequena" | "Média" | "Grande";
+    nome: "Pequena" | "Média" | "Grande" | "Gigante";
     preco: number;
   }[];
 };

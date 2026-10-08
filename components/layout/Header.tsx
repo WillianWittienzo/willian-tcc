@@ -93,6 +93,7 @@ export default function Header() {
           <li><Link href="/cardapio">Cardápio</Link></li>
           <li><Link href="/sobre">Sobre</Link></li>
           <li><Link href="/contato">Contato</Link></li>
+          <li><Link href="/acompanhar-pedido">Acompanhar Pedido</Link></li>
           <li>
   <Link href="/carrinho" className="relative">
     <LuShoppingCart
@@ -130,6 +131,7 @@ export default function Header() {
         <li className="mb-6"><Link href="/cardapio">Cardápio</Link></li>
         <li className="mb-6"><Link href="/sobre">Sobre</Link></li>
         <li className="mb-6"><Link href="/contato">Contato</Link></li>
+        <li className="mb-6"><Link href="/acompanhar-pedido">Acompanhar Pedido</Link></li>
         {user?.papel === "Admin" ? (
           <>
             <li className="mb-6"><Link href="/admin">Painel Admin</Link></li>

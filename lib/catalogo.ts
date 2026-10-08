@@ -1,7 +1,7 @@
 export const CATEGORIAS = ["Tradicional", "Especial", "Doce"] as const;
 export type CategoriaProduto = (typeof CATEGORIAS)[number];
 
-export const TAMANHOS = ["Pequena", "Média", "Grande"] as const;
+export const TAMANHOS = ["Pequena", "Média", "Grande", "Gigante"] as const;
 export type TamanhoProduto = (typeof TAMANHOS)[number];
 
 export const BORDAS = [

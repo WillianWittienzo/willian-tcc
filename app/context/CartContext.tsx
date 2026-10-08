@@ -12,6 +12,8 @@ export type CartItem = {
   description: string;
   image: string;
   preco: number;
+  precoOriginal: number;
+  descontoPercentual: number | null;
   tamanho: TamanhoProduto;
   borda: NomeBorda;
   precoBorda: number;

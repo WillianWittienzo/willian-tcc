@@ -7,13 +7,13 @@ import { LuTrash } from "react-icons/lu";
 import { useCart } from "@/app/context/CartContext";
 import { criarPedido } from "@/client/pedidoClient";
 import { CheckoutModal } from "@/components/carrinho/CheckoutModal";
-import type { DadosEntrega } from "@/lib/checkout";
-import { calcularTaxaEntregaEmCentavos } from "@/lib/pedido";
+import type { DadosCheckout } from "@/lib/checkout";
 
 export default function CarrinhoPage() {
   const [finalizando, setFinalizando] = useState(false);
   const [checkoutAberto, setCheckoutAberto] = useState(false);
   const [pedidoConfirmado, setPedidoConfirmado] = useState<number | null>(null);
+  const [telefoneConfirmado, setTelefoneConfirmado] = useState("");
   const { items, addToCart, decreaseQuantity, removeFromCart, clearCart } = useCart();
 
   function abrirCheckout() {
@@ -21,12 +21,12 @@ export default function CarrinhoPage() {
     setCheckoutAberto(true);
   }
 
-  async function confirmarPedido(dadosEntrega: DadosEntrega) {
+  async function confirmarPedido(dadosCheckout: DadosCheckout) {
     if (items.length === 0 || finalizando) return;
     setFinalizando(true);
     try {
       const pedido = await criarPedido({
-        dadosEntrega,
+        dadosCheckout,
         itens: items.map((item) => ({
           produtoId: item.id,
           tamanho: item.tamanho,
@@ -37,13 +37,13 @@ export default function CarrinhoPage() {
       clearCart();
       setCheckoutAberto(false);
       setPedidoConfirmado(pedido.id);
+      setTelefoneConfirmado(dadosCheckout.telefone);
     } finally {
       setFinalizando(false);
     }
   }
 
   const subtotal = items.reduce((total, item) => total + (item.preco + item.precoBorda) * item.quantidade, 0);
-  const entrega = calcularTaxaEntregaEmCentavos(Math.round(subtotal * 100)) / 100;
 
   return (
     <div className="max-w-6xl mx-auto p-6 mt-20 grid md:grid-cols-3 gap-8">
@@ -71,6 +71,8 @@ export default function CarrinhoPage() {
                       description: item.description,
                       image: item.image,
                       preco: item.preco,
+                      precoOriginal: item.precoOriginal,
+                      descontoPercentual: item.descontoPercentual,
                       tamanho: item.tamanho,
                       borda: item.borda,
                       precoBorda: item.precoBorda,
@@ -88,8 +90,7 @@ export default function CarrinhoPage() {
       <div className="bg-white p-6 rounded-xl shadow h-fit">
         <h2 className="text-lg font-bold mb-4">Resumo</h2>
         <div className="flex justify-between mb-2"><span>Subtotal</span><span>R$ {subtotal.toFixed(2)}</span></div>
-        <div className="flex justify-between mb-4"><span>Entrega</span><span>{items.length && entrega === 0 ? "Grátis" : `R$ ${items.length ? entrega.toFixed(2) : "0.00"}`}</span></div>
-        <div className="flex justify-between font-bold text-lg mb-6"><span>Total</span><span>R$ {items.length ? (subtotal + entrega).toFixed(2) : "0.00"}</span></div>
+        <p className="mb-4 text-sm text-gray-500">A taxa e o total serão exibidos após escolher Entrega ou Retirada.</p>
         <button type="button" onClick={abrirCheckout} disabled={!items.length || finalizando} className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100">Finalizar Pedido</button>
         <Link href="/cardapio" className="block mt-6 w-full text-black py-2 bg-yellow-600 rounded-lg transition duration-300 hover:bg-yellow-500 hover:scale-105 text-center">Continuar comprando</Link>
       </div>
@@ -97,6 +98,8 @@ export default function CarrinhoPage() {
       {checkoutAberto && (
         <CheckoutModal
           enviando={finalizando}
+          itens={items}
+          subtotal={subtotal}
           onCancelar={() => setCheckoutAberto(false)}
           onConfirmar={confirmarPedido}
         />
@@ -107,7 +110,10 @@ export default function CarrinhoPage() {
           <div className="w-full max-w-md rounded-xl bg-white p-6 text-center shadow-xl">
             <h2 id="titulo-confirmacao" className="text-2xl font-bold text-green-700">Pedido confirmado!</h2>
             <p className="mt-3 text-lg">Pedido #{pedidoConfirmado} realizado com sucesso.</p>
-            <p className="mt-2 text-sm text-gray-500">A pizzaria recebeu seu pedido e cuidará da entrega.</p>
+            <p className="mt-2 text-sm text-gray-500">Telefone utilizado: {telefoneConfirmado.replace(/^(\d{2})\d+(\d{4})$/, "($1) *****-$2")}</p>
+            <Link href={`/acompanhar-pedido?pedido=${pedidoConfirmado}`} className="mt-6 block rounded-md bg-green-700 px-5 py-3 font-semibold text-white hover:bg-green-800">
+              Acompanhar pedido
+            </Link>
             <Link href="/cardapio" onClick={() => setPedidoConfirmado(null)} className="mt-6 block rounded-md bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700">
               Voltar ao cardápio
             </Link>

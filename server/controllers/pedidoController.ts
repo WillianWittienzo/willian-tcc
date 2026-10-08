@@ -83,4 +83,31 @@ export const pedidoController = {
       };
     }
   },
+
+  async atualizarStatusRecebimento(id: number, data: unknown) {
+    try {
+      return { status: 200, data: await pedidoService.atualizarStatusRecebimento(id, data) };
+    } catch (error) {
+      if (error instanceof PedidoInvalidoError) {
+        return { status: 400, data: { erro: error.message } };
+      }
+      if (error instanceof PedidoNaoEncontradoError) {
+        return { status: 404, data: { erro: error.message } };
+      }
+      console.error("Erro ao atualizar recebimento:", error);
+      return { status: 500, data: { erro: "Erro ao atualizar recebimento" } };
+    }
+  },
+
+  async acompanhar(data: unknown) {
+    try {
+      return { status: 200, data: await pedidoService.acompanhar(data) };
+    } catch (error) {
+      if (error instanceof PedidoNaoEncontradoError) {
+        return { status: 404, data: { erro: "Pedido não encontrado com os dados informados." } };
+      }
+      console.error("Erro ao acompanhar pedido:", error);
+      return { status: 500, data: { erro: "Não foi possível consultar o pedido." } };
+    }
+  },
 };

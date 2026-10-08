@@ -22,6 +22,8 @@ export function CardItem({ id, nome, categoria, image, description, tamanhos, de
     image,
     description,
     preco: precoPizza,
+    precoOriginal: tamanhoSelecionado.preco,
+    descontoPercentual,
     tamanho: tamanhoSelecionado.nome,
     borda: bordaSelecionada.nome,
     precoBorda: bordaSelecionada.preco,

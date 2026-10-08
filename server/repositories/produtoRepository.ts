@@ -42,6 +42,7 @@ export const produtoRepository = {
         image: data.image,
         descontoPercentual: data.descontoPercentual,
         tamanhos: {
+          deleteMany: { nome: { notIn: data.tamanhos.map((tamanho) => tamanho.nome) } },
           upsert: data.tamanhos.map((tamanho) => ({
             where: { produtoId_nome: { produtoId: id, nome: tamanho.nome } },
             update: { preco: tamanho.preco, ordem: tamanho.ordem },
