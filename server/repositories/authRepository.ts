@@ -1,8 +1,15 @@
 import { prisma } from "@/lib/prisma";
+import { PapelUsuario } from "@/app/generated/prisma/client";
 
 export const authRepository = {
   buscarPorEmail(email: string) {
     return prisma.usuario.findUnique({ where: { email } });
+  },
+
+  criarCliente(data: { nome: string; email: string; telefone: string; senhaHash: string }) {
+    return prisma.usuario.create({
+      data: { ...data, papel: PapelUsuario.Cliente },
+    });
   },
 
   criarSessao(data: { tokenHash: string; usuarioId: number; expiraEm: Date }) {

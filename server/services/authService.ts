@@ -1,22 +1,36 @@
 import { randomBytes, scrypt, timingSafeEqual, createHash } from "node:crypto";
 import { promisify } from "node:util";
+import { normalizarTelefone } from "@/lib/checkout";
 import { authRepository } from "@/server/repositories/authRepository";
 
 const scryptAsync = promisify(scrypt);
 const DURACAO_SESSAO_MS = 7 * 24 * 60 * 60 * 1000;
 
 export class AuthCredenciaisInvalidasError extends Error {}
+export class AuthDadosInvalidosError extends Error {}
+export class AuthEmailDuplicadoError extends Error {}
+
+function emailDuplicadoNoBanco(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
+}
 
 function usuarioPublico(usuario: {
   id: number;
   nome: string;
   email: string;
+  telefone: string | null;
   papel: "Cliente" | "Admin";
 }) {
   return {
     id: usuario.id,
     nome: usuario.nome,
     email: usuario.email,
+    telefone: usuario.telefone,
     papel: usuario.papel,
   };
 }
@@ -31,17 +45,53 @@ export async function gerarHashSenha(senha: string) {
   return `scrypt$${salt}$${chave.toString("hex")}`;
 }
 
-async function verificarSenha(senha: string, hashArmazenado: string) {
+export async function verificarSenha(senha: string, hashArmazenado: string) {
   const [algoritmo, salt, hash] = hashArmazenado.split("$");
-  if (algoritmo !== "scrypt" || !salt || !hash) return false;
+  if (
+    algoritmo !== "scrypt" ||
+    !/^[a-f\d]{32}$/i.test(salt ?? "") ||
+    !/^[a-f\d]{128}$/i.test(hash ?? "")
+  ) return false;
 
   const hashBuffer = Buffer.from(hash, "hex");
   const chave = (await scryptAsync(senha, salt, hashBuffer.length)) as Buffer;
   return hashBuffer.length === chave.length && timingSafeEqual(hashBuffer, chave);
 }
 
-function validarLogin(data: unknown) {
-  if (typeof data !== "object" || data === null) {
+export function validarCadastro(data: unknown) {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new AuthDadosInvalidosError("Dados de cadastro inválidos");
+  }
+
+  const campos = data as Record<string, unknown>;
+  const nome = typeof campos.nome === "string"
+    ? campos.nome.trim().replace(/\s+/g, " ")
+    : "";
+  const email = typeof campos.email === "string" ? campos.email.trim().toLowerCase() : "";
+  const senha = typeof campos.senha === "string" ? campos.senha : "";
+  let telefone: string;
+
+  try {
+    telefone = normalizarTelefone(campos.telefone);
+  } catch {
+    throw new AuthDadosInvalidosError("Informe um telefone válido com DDD");
+  }
+
+  if (nome.length < 2 || nome.length > 100) {
+    throw new AuthDadosInvalidosError("Nome deve ter entre 2 e 100 caracteres");
+  }
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new AuthDadosInvalidosError("Informe um e-mail válido");
+  }
+  if (senha.length < 8 || senha.length > 128) {
+    throw new AuthDadosInvalidosError("Senha deve ter entre 8 e 128 caracteres");
+  }
+
+  return { nome, email, telefone, senha };
+}
+
+export function validarLogin(data: unknown) {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
     throw new AuthCredenciaisInvalidasError("Email ou senha inválidos");
   }
 
@@ -54,10 +104,32 @@ function validarLogin(data: unknown) {
 }
 
 export const authService = {
+  async cadastrar(data: unknown) {
+    const dados = validarCadastro(data);
+    if (await authRepository.buscarPorEmail(dados.email)) {
+      throw new AuthEmailDuplicadoError("E-mail já cadastrado");
+    }
+
+    try {
+      const usuario = await authRepository.criarCliente({
+        nome: dados.nome,
+        email: dados.email,
+        telefone: dados.telefone,
+        senhaHash: await gerarHashSenha(dados.senha),
+      });
+      return usuarioPublico(usuario);
+    } catch (error) {
+      if (emailDuplicadoNoBanco(error)) {
+        throw new AuthEmailDuplicadoError("E-mail já cadastrado");
+      }
+      throw error;
+    }
+  },
+
   async login(data: unknown) {
     const dados = validarLogin(data);
     const usuario = await authRepository.buscarPorEmail(dados.email);
-    if (!usuario || usuario.papel !== "Admin" || !(await verificarSenha(dados.senha, usuario.senhaHash))) {
+    if (!usuario || !(await verificarSenha(dados.senha, usuario.senhaHash))) {
       throw new AuthCredenciaisInvalidasError("Email ou senha inválidos");
     }
 
