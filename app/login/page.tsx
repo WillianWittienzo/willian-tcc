@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { useAuth } from "../context/AuthContext"
 import { useRouter } from "next/navigation"
 
@@ -22,8 +23,8 @@ export default function LoginPage() {
         setEnviando(true)
 
         try {
-            await login(email, senha)
-            router.push("/admin")
+            const usuario = await login(email, senha)
+            router.push(usuario.papel === "Admin" ? "/admin" : "/cardapio")
         } catch (error) {
             setErro(error instanceof Error ? error.message : "Erro ao entrar")
         } finally {
@@ -48,11 +49,11 @@ export default function LoginPage() {
                 </div>
 
                 <h1 className="text-3xl font-bold text-center mb-2">
-                    ACESSO ADMINISTRATIVO
+                    BEM-VINDO
                 </h1>
 
                 <p className="text-center text-gray-500 mb-6">
-                    Entre com uma conta de administrador
+                    Entre na sua conta
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -67,6 +68,8 @@ export default function LoginPage() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full border rounded-md p-3"
+                            autoComplete="email"
+                            maxLength={254}
                             required
                         />
                     </div>
@@ -79,6 +82,8 @@ export default function LoginPage() {
                             value={senha}
                             onChange={(e) => setSenha(e.target.value)}
                             className="w-full border rounded-md p-3"
+                            autoComplete="current-password"
+                            maxLength={128}
                             required
                         />
                     </div>
@@ -91,6 +96,13 @@ export default function LoginPage() {
                         {enviando ? "Entrando..." : "Entrar"}
                     </button>
                 </form>
+
+                <p className="text-center text-sm text-gray-500 mt-6">
+                    Ainda não tem conta?{" "}
+                    <Link href="/cadastro" className="text-red-700 font-medium">
+                        Cadastre-se
+                    </Link>
+                </p>
             </div>
                 
         </main>

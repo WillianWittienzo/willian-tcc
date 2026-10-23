@@ -1,0 +1,165 @@
+// Schema exclusivo do SQLite local. Mantenha modelos e enums sincronizados com
+// prisma/schema.prisma; tipos nativos @db.* permanecem apenas no PostgreSQL.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../../app/generated/prisma-sqlite"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Categoria {
+  Tradicional
+  Especial
+  Doce
+}
+
+enum NomeTamanho {
+  Pequena
+  Media
+  Grande
+  Gigante
+}
+
+enum MetodoEntrega {
+  Entrega
+  Retirada
+}
+
+enum FormaPagamento {
+  Dinheiro
+  Cartao
+  Pix
+  Boleto
+}
+
+enum StatusRecebimento {
+  Pendente
+  Pago
+  Falhou
+}
+
+enum StatusPedido {
+  Pendente
+  EmPreparo
+  SaiuParaEntrega
+  Entregue
+  Cancelado
+}
+
+enum PapelUsuario {
+  Cliente
+  Admin
+}
+
+enum NomeBorda {
+  Catupiry
+  Cheddar
+}
+
+model Produto {
+  id                 Int              @id @default(autoincrement())
+  nome               String
+  categoria          Categoria
+  description        String
+  image              String
+  descontoPercentual Int?
+  tamanhos           ProdutoTamanho[]
+  itensPedido        ItemPedido[]
+}
+
+model ProdutoTamanho {
+  id        Int         @id @default(autoincrement())
+  produtoId Int
+  nome      NomeTamanho
+  preco     Decimal
+  ordem     Int
+
+  produto Produto @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+
+  @@unique([produtoId, nome])
+}
+
+model Pedido {
+  id            Int            @id @default(autoincrement())
+  clienteId     Int?
+  nomeCliente   String?
+  telefone      String?
+  cep           String?
+  rua           String?
+  numero        String?
+  bairro        String?
+  complemento   String?
+  referencia    String?
+  valorTotal    Decimal
+  taxaEntrega   Decimal
+  metodoEntrega MetodoEntrega?
+  status        StatusPedido   @default(Pendente)
+  criadoEm      DateTime       @default(now())
+  itens         ItemPedido[]
+  recebimento   Recebimento?
+  cliente       Usuario?       @relation(fields: [clienteId], references: [id], onDelete: SetNull)
+
+  @@index([clienteId])
+  @@index([criadoEm])
+  @@index([status, criadoEm])
+  @@index([telefone])
+}
+
+model Recebimento {
+  id             Int               @id @default(autoincrement())
+  pedidoId       Int               @unique
+  valor          Decimal
+  formaPagamento FormaPagamento
+  status         StatusRecebimento @default(Pendente)
+  criadoEm       DateTime          @default(now())
+  atualizadoEm   DateTime          @updatedAt
+  pedido         Pedido            @relation(fields: [pedidoId], references: [id], onDelete: Restrict)
+
+  @@index([status])
+  @@index([criadoEm])
+}
+
+model Usuario {
+  id        Int          @id @default(autoincrement())
+  nome      String
+  email     String       @unique
+  telefone  String?
+  senhaHash String
+  papel     PapelUsuario @default(Cliente)
+  criadoEm  DateTime     @default(now())
+  pedidos   Pedido[]
+  sessoes   Sessao[]
+}
+
+model Sessao {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique
+  usuarioId Int
+  expiraEm  DateTime
+  criadoEm  DateTime @default(now())
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([expiraEm])
+}
+
+model ItemPedido {
+  id            Int         @id @default(autoincrement())
+  pedidoId      Int
+  produtoId     Int?
+  nomeProduto   String
+  tamanho       NomeTamanho
+  quantidade    Int
+  precoUnitario Decimal
+  borda         NomeBorda?
+  precoBorda    Decimal     @default(0)
+
+  pedido  Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  produto Produto? @relation(fields: [produtoId], references: [id], onDelete: SetNull)
+
+  @@index([pedidoId])
+  @@index([produtoId])
+}

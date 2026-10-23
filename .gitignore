@@ -41,6 +41,17 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+/app/generated/prisma-sqlite
+
+# SQLite local (banco e arquivos auxiliares de WAL/journal)
+/prisma/local/*
+!/prisma/local/.gitkeep
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
 
 # Arquivos auxiliares de ferramentas de IA/Prisma
 .agents/

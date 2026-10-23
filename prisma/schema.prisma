@@ -128,6 +128,7 @@ model Usuario {
   id        Int          @id @default(autoincrement())
   nome      String
   email     String       @unique
+  telefone  String?
   senhaHash String
   papel     PapelUsuario @default(Cliente)
   criadoEm  DateTime     @default(now())

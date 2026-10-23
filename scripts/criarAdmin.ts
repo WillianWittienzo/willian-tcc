@@ -1,6 +1,6 @@
 import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient, PapelUsuario } from "../app/generated/prisma/client";
+import { PapelUsuario } from "../app/generated/prisma/client";
+import { prisma } from "../lib/prisma";
 import { gerarHashSenha } from "../server/services/authService";
 
 const nome = process.env.ADMIN_NOME?.trim();
@@ -10,10 +10,6 @@ const senha = process.env.ADMIN_SENHA;
 if (!nome || !email || !senha || senha.length < 8) {
   throw new Error("Defina ADMIN_NOME, ADMIN_EMAIL e ADMIN_SENHA (mínimo 8 caracteres)");
 }
-
-const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL! }),
-});
 
 async function main() {
   const senhaHash = await gerarHashSenha(senha!);

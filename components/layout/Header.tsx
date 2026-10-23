@@ -116,7 +116,7 @@ export default function Header() {
           ) : user ? (
             <li><button onClick={sair} className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Sair</button></li>
           ) : (
-            <li><Link href="/login" className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Área administrativa</Link></li>
+            <li><Link href="/login" className="rounded-lg bg-red-600 px-6 py-2 text-white hover:bg-orange-500 transition">Entrar</Link></li>
           )}
         </ul>
       </nav>
@@ -140,7 +140,7 @@ export default function Header() {
         ) : user ? (
           <li><button onClick={sair} className="text-red-600">Sair</button></li>
         ) : (
-          <li><Link href="/login" className="mb-6 text-red-600">Área administrativa</Link></li>
+          <li><Link href="/login" className="mb-6 text-red-600">Entrar</Link></li>
         )}
       </ul>
       

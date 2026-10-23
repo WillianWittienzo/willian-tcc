@@ -2,6 +2,7 @@ export type Usuario = {
   id: number;
   nome: string;
   email: string;
+  telefone: string | null;
   papel: "Cliente" | "Admin";
 };
 
@@ -9,6 +10,13 @@ async function resposta<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => null);
   if (!response.ok) throw new Error(data?.erro ?? "Erro de autenticação");
   return data;
+}
+
+export async function cadastrar(data: { nome: string; email: string; telefone: string; senha: string }) {
+  const respostaCadastro = await resposta<{ usuario: Usuario }>(await fetch("/api/auth/cadastro", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data),
+  }));
+  return respostaCadastro.usuario;
 }
 
 export async function login(email: string, senha: string) {
