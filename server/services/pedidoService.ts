@@ -24,7 +24,7 @@ import {
 import { pedidoRepository } from "@/server/repositories/pedidoRepository";
 
 type TamanhoPedido = (typeof TAMANHOS)[number];
-type ItemRecebido = { produtoId: number; tamanho: TamanhoPedido; borda: NomeBorda; quantidade: number };
+type ItemRecebido = { produtoId: number; tamanho: TamanhoPedido; borda: NomeBorda; observacao: string | null; quantidade: number };
 
 export class PedidoInvalidoError extends Error {}
 export class PedidoNaoEncontradoError extends Error {}
@@ -68,6 +68,7 @@ function formatarPedido(pedido: PedidoPersistido) {
       tamanho: item.tamanho === "Media" ? "Média" : item.tamanho,
       borda: item.borda,
       precoBorda: Number(item.precoBorda),
+      observacao: item.observacao,
       quantidade: item.quantidade,
       precoUnitario: Number(item.precoUnitario),
     })),
@@ -103,13 +104,19 @@ function validarItens(data: unknown): ItemRecebido[] {
     const quantidade = "quantidade" in item ? item.quantidade : null;
     const tamanho = "tamanho" in item ? item.tamanho : null;
     const borda = buscarBorda("borda" in item ? item.borda : null);
+    const observacaoRecebida = "observacao" in item ? item.observacao : null;
     if (!Number.isInteger(produtoId) || Number(produtoId) <= 0 || !Number.isInteger(quantidade) || Number(quantidade) <= 0 || Number(quantidade) > 99 || !TAMANHOS.includes(tamanho as TamanhoPedido) || !borda) {
       throw new PedidoInvalidoError("Produto, tamanho, borda ou quantidade inválidos");
     }
+    if (observacaoRecebida !== null && observacaoRecebida !== undefined && (typeof observacaoRecebida !== "string" || observacaoRecebida.length > 200)) {
+      throw new PedidoInvalidoError("A observação deve ter no máximo 200 caracteres");
+    }
+    const observacao = typeof observacaoRecebida === "string" ? observacaoRecebida.trim() : "";
     return {
       produtoId: Number(produtoId),
       tamanho: tamanho as TamanhoPedido,
       borda: borda.nome,
+      observacao: observacao || null,
       quantidade: Number(quantidade),
     };
   });
@@ -214,6 +221,7 @@ export const pedidoService = {
         tamanho,
         borda: borda.nome === "Sem borda" ? null : NomeBordaBanco[borda.nome],
         precoBorda: borda.preco,
+        observacao: item.observacao,
         quantidade: item.quantidade,
         precoUnitario: precoPizzaEmCentavos / 100,
       };

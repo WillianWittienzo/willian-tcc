@@ -20,6 +20,7 @@ export type CriarPedidoData = {
     produtoId: number;
     tamanho: TamanhoProduto;
     borda: NomeBorda;
+    observacao: string;
     quantidade: number;
   }[];
 };
@@ -31,6 +32,7 @@ export type ItemPedido = {
   tamanho: TamanhoProduto;
   borda: NomeBordaRecheada | null;
   precoBorda: number;
+  observacao: string | null;
   quantidade: number;
   precoUnitario: number;
 };
@@ -119,8 +121,8 @@ export async function listarPedidosKanban(filtros: FiltrosDataPedido): Promise<K
   return response.json();
 }
 
-export async function listarMeusPedidos(): Promise<Pedido[]> {
-  const response = await fetch("/api/pedidos/meus");
+export async function listarMeusPedidos(signal?: AbortSignal): Promise<Pedido[]> {
+  const response = await fetch("/api/pedidos/meus", { signal });
 
   if (!response.ok) {
     const data = await response.json().catch(() => null);

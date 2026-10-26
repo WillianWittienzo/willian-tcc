@@ -1,6 +1,10 @@
 import { randomBytes, scrypt, timingSafeEqual, createHash } from "node:crypto";
 import { promisify } from "node:util";
-import { normalizarTelefone } from "@/lib/checkout";
+import {
+  DadosEntregaInvalidosError,
+  normalizarEnderecoEntrega,
+  normalizarTelefone,
+} from "@/lib/checkout";
 import { authRepository } from "@/server/repositories/authRepository";
 
 const scryptAsync = promisify(scrypt);
@@ -32,6 +36,19 @@ function usuarioPublico(usuario: {
     email: usuario.email,
     telefone: usuario.telefone,
     papel: usuario.papel,
+  };
+}
+
+function perfilPublico(usuario: Awaited<ReturnType<typeof authRepository.buscarPorId>>) {
+  if (!usuario) return null;
+  return {
+    ...usuarioPublico(usuario),
+    cep: usuario.cep,
+    rua: usuario.rua,
+    numero: usuario.numero,
+    bairro: usuario.bairro,
+    complemento: usuario.complemento,
+    referencia: usuario.referencia,
   };
 }
 
@@ -103,7 +120,79 @@ export function validarLogin(data: unknown) {
   return { email, senha };
 }
 
+export function validarDadosPessoais(data: unknown) {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new AuthDadosInvalidosError("Dados pessoais inválidos");
+  }
+  const campos = data as Record<string, unknown>;
+  const nome = typeof campos.nome === "string" ? campos.nome.trim().replace(/\s+/g, " ") : "";
+  let telefone: string;
+  try {
+    telefone = normalizarTelefone(campos.telefone);
+  } catch {
+    throw new AuthDadosInvalidosError("Informe um telefone válido com DDD");
+  }
+  if (nome.length < 2 || nome.length > 100) {
+    throw new AuthDadosInvalidosError("Nome deve ter entre 2 e 100 caracteres");
+  }
+  return { nome, telefone };
+}
+
+export function validarAlteracaoSenha(data: unknown) {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new AuthDadosInvalidosError("Dados de senha inválidos");
+  }
+  const campos = data as Record<string, unknown>;
+  const senhaAtual = typeof campos.senhaAtual === "string" ? campos.senhaAtual : "";
+  const novaSenha = typeof campos.novaSenha === "string" ? campos.novaSenha : "";
+  const confirmarNovaSenha = typeof campos.confirmarNovaSenha === "string" ? campos.confirmarNovaSenha : "";
+  if (!senhaAtual || senhaAtual.length > 128) {
+    throw new AuthDadosInvalidosError("Informe a senha atual");
+  }
+  if (novaSenha.length < 8 || novaSenha.length > 128) {
+    throw new AuthDadosInvalidosError("A nova senha deve ter entre 8 e 128 caracteres");
+  }
+  if (novaSenha !== confirmarNovaSenha) {
+    throw new AuthDadosInvalidosError("As novas senhas não coincidem");
+  }
+  return { senhaAtual, novaSenha };
+}
+
 export const authService = {
+  async perfil(usuarioId: number) {
+    return perfilPublico(await authRepository.buscarPorId(usuarioId));
+  },
+
+  async atualizarDadosPessoais(usuarioId: number, data: unknown) {
+    const dados = validarDadosPessoais(data);
+    return perfilPublico(await authRepository.atualizarDadosPessoais(usuarioId, dados));
+  },
+
+  async atualizarEndereco(usuarioId: number, data: unknown) {
+    try {
+      const endereco = normalizarEnderecoEntrega(data);
+      return perfilPublico(await authRepository.atualizarEndereco(usuarioId, endereco));
+    } catch (error) {
+      if (error instanceof DadosEntregaInvalidosError) {
+        throw new AuthDadosInvalidosError(error.message);
+      }
+      throw error;
+    }
+  },
+
+  async alterarSenha(usuarioId: number, tokenAtual: string, data: unknown) {
+    const senhas = validarAlteracaoSenha(data);
+    const usuario = await authRepository.buscarPorId(usuarioId);
+    if (!usuario || !(await verificarSenha(senhas.senhaAtual, usuario.senhaHash))) {
+      throw new AuthCredenciaisInvalidasError("Senha atual incorreta");
+    }
+    await authRepository.atualizarSenhaEInvalidarOutrasSessoes(
+      usuarioId,
+      await gerarHashSenha(senhas.novaSenha),
+      hashTokenSessao(tokenAtual),
+    );
+  },
+
   async cadastrar(data: unknown) {
     const dados = validarCadastro(data);
     if (await authRepository.buscarPorEmail(dados.email)) {

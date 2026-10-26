@@ -4,7 +4,9 @@ import {
   AuthCredenciaisInvalidasError,
   AuthDadosInvalidosError,
   gerarHashSenha,
+  validarAlteracaoSenha,
   validarCadastro,
+  validarDadosPessoais,
   validarLogin,
   verificarSenha,
 } from "../server/services/authService";
@@ -21,6 +23,28 @@ test("normaliza os dados obrigatórios do cadastro de cliente", () => {
     telefone: "11999999999",
     senha: "senha-segura",
   });
+});
+
+test("valida alteração de senha e confirmação", () => {
+  assert.deepEqual(validarAlteracaoSenha({
+    senhaAtual: "senha-antiga",
+    novaSenha: "senha-nova-segura",
+    confirmarNovaSenha: "senha-nova-segura",
+  }), { senhaAtual: "senha-antiga", novaSenha: "senha-nova-segura" });
+  assert.throws(() => validarAlteracaoSenha({
+    senhaAtual: "senha-antiga",
+    novaSenha: "senha-nova-segura",
+    confirmarNovaSenha: "diferente",
+  }), AuthDadosInvalidosError);
+});
+
+test("valida atualização de nome e telefone sem aceitar outros dados", () => {
+  assert.deepEqual(validarDadosPessoais({
+    nome: "  Maria   Atualizada ",
+    telefone: "+55 (11) 98888-7777",
+    papel: "Admin",
+  }), { nome: "Maria Atualizada", telefone: "11988887777" });
+  assert.throws(() => validarDadosPessoais({ nome: "M", telefone: "123" }), AuthDadosInvalidosError);
 });
 
 test("rejeita dados inválidos no cadastro de cliente", () => {

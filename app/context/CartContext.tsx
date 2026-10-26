@@ -17,11 +17,12 @@ export type CartItem = {
   tamanho: TamanhoProduto;
   borda: NomeBorda;
   precoBorda: number;
+  observacao: string;
   tamanhos: Tamanho[];
   quantidade: number;
 };
 
-type ChaveItem = Pick<CartItem, "id" | "tamanho" | "borda">;
+type ChaveItem = Pick<CartItem, "id" | "tamanho" | "borda" | "observacao">;
 type CartContextType = {
   items: CartItem[];
   addToCart: (item: Omit<CartItem, "quantidade">, quantidade?: number) => void;
@@ -62,7 +63,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   function addToCart(item: Omit<CartItem, "quantidade">, quantidade = 1) {
     if (!Number.isInteger(quantidade) || quantidade < 1 || quantidade > 99) return;
     setItems((atuais) => {
-      const chave = { id: item.id, tamanho: item.tamanho, borda: item.borda };
+      const chave = { id: item.id, tamanho: item.tamanho, borda: item.borda, observacao: item.observacao };
       return atuais.some((atual) => itensTemMesmaConfiguracao(atual, chave))
         ? atuais.map((atual) => itensTemMesmaConfiguracao(atual, chave) ? { ...atual, quantidade: Math.min(99, atual.quantidade + quantidade) } : atual)
         : [...atuais, { ...item, quantidade }];
@@ -91,6 +92,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         id: itemAtualizado.id,
         tamanho: itemAtualizado.tamanho,
         borda: itemAtualizado.borda,
+        observacao: itemAtualizado.observacao,
       };
       const itemIgual = restantes.find((item) => itensTemMesmaConfiguracao(item, novaChave));
 

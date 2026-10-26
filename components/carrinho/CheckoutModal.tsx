@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type { CartItem } from "@/app/context/CartContext";
+import { buscarPerfil } from "@/client/authClient";
 import {
   DadosEntregaInvalidosError,
   FORMAS_PAGAMENTO,
@@ -38,6 +39,32 @@ export function CheckoutModal({ enviando, itens, subtotal, onCancelar, onConfirm
   const [metodoEntrega, setMetodoEntrega] = useState<MetodoEntrega | "">("");
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento | "">("");
   const [erro, setErro] = useState("");
+  const [carregandoPerfil, setCarregandoPerfil] = useState(true);
+
+  useEffect(() => {
+    let ativo = true;
+    buscarPerfil()
+      .then((perfil) => {
+        if (!ativo) return;
+        setCampos((atuais) => ({
+          nomeCliente: atuais.nomeCliente || perfil.nome,
+          telefone: atuais.telefone || perfil.telefone || "",
+          cep: atuais.cep || perfil.cep || "",
+          rua: atuais.rua || perfil.rua || "",
+          numero: atuais.numero || perfil.numero || "",
+          bairro: atuais.bairro || perfil.bairro || "",
+          complemento: atuais.complemento || perfil.complemento || "",
+          referencia: atuais.referencia || perfil.referencia || "",
+        }));
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (ativo) setCarregandoPerfil(false);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   function alterar(campo: keyof typeof camposIniciais, valor: string) {
     setCampos((atuais) => ({ ...atuais, [campo]: valor }));
@@ -73,6 +100,7 @@ export function CheckoutModal({ enviando, itens, subtotal, onCancelar, onConfirm
       <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-5 shadow-xl sm:p-6">
         <h2 id="titulo-checkout" className="text-2xl font-bold">Finalizar pedido</h2>
         <p className="mt-1 text-sm text-gray-500">Informe seus dados, entrega e forma de pagamento.</p>
+        {carregandoPerfil && <p className="mt-2 text-sm text-gray-500">Carregando dados salvos...</p>}
 
         <form onSubmit={confirmar} className="mt-5 grid gap-4 sm:grid-cols-2">
           {erro && <p className="rounded-md bg-red-100 p-3 text-sm text-red-800 sm:col-span-2">{erro}</p>}
@@ -139,8 +167,11 @@ export function CheckoutModal({ enviando, itens, subtotal, onCancelar, onConfirm
             <h3 className="font-bold">Resumo</h3>
             <div className="mt-2 divide-y text-sm">
               {itens.map((item) => (
-                <div key={`${item.id}-${item.tamanho}-${item.borda}`} className="flex justify-between gap-3 py-2">
-                  <span>{item.quantidade}× {item.nome} ({item.tamanho}) · {item.borda}</span>
+                <div key={`${item.id}-${item.tamanho}-${item.borda}-${item.observacao ?? ""}`} className="flex justify-between gap-3 py-2">
+                  <span>
+                    {item.quantidade}× {item.nome} ({item.tamanho}) · {item.borda}
+                    {item.observacao && <small className="block text-gray-500">Observação: {item.observacao}</small>}
+                  </span>
                   <span>{moeda.format((item.preco + item.precoBorda) * item.quantidade)}</span>
                 </div>
               ))}

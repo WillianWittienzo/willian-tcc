@@ -6,6 +6,15 @@ export type Usuario = {
   papel: "Cliente" | "Admin";
 };
 
+export type PerfilCliente = Usuario & {
+  cep: string | null;
+  rua: string | null;
+  numero: string | null;
+  bairro: string | null;
+  complemento: string | null;
+  referencia: string | null;
+};
+
 async function resposta<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => null);
   if (!response.ok) throw new Error(data?.erro ?? "Erro de autenticação");
@@ -30,6 +39,49 @@ export async function buscarSessao() {
   const response = await fetch("/api/auth/me");
   if (response.status === 401) return null;
   return (await resposta<{ usuario: Usuario }>(response)).usuario;
+}
+
+export async function buscarPerfil() {
+  const response = await fetch("/api/perfil");
+  return (await resposta<{ perfil: PerfilCliente }>(response)).perfil;
+}
+
+export async function atualizarDadosPessoais(data: { nome: string; telefone: string }) {
+  const response = await fetch("/api/perfil", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return (await resposta<{ perfil: PerfilCliente }>(response)).perfil;
+}
+
+export async function atualizarEndereco(data: {
+  cep: string;
+  rua: string;
+  numero: string;
+  bairro: string;
+  complemento: string;
+  referencia: string;
+}) {
+  const response = await fetch("/api/perfil/endereco", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return (await resposta<{ perfil: PerfilCliente }>(response)).perfil;
+}
+
+export async function alterarSenha(data: {
+  senhaAtual: string;
+  novaSenha: string;
+  confirmarNovaSenha: string;
+}) {
+  const response = await fetch("/api/perfil/senha", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return resposta<{ mensagem: string }>(response);
 }
 
 export async function logout() {

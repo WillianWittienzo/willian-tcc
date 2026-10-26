@@ -7,6 +7,7 @@ import {
   FORMAS_PAGAMENTO,
   ROTA_CHECKOUT,
   criarUrlAutenticacao,
+  normalizarEnderecoEntrega,
   normalizarDadosEntrega,
   normalizarTelefone,
   obterRetornoCompra,
@@ -94,6 +95,12 @@ test("diferencia itens do carrinho pela borda", () => {
     ),
     false,
   );
+});
+
+test("diferencia pizzas com observações distintas no carrinho", () => {
+  const pizza = { id: 1, tamanho: "Média", borda: "Sem borda", observacao: "Sem cebola" } as const;
+  assert.equal(itensTemMesmaConfiguracao(pizza, { ...pizza }), true);
+  assert.equal(itensTemMesmaConfiguracao(pizza, { ...pizza, observacao: "Pouco molho" }), false);
 });
 
 test("aceita todos os filtros de status combinados com dia, mês e ano", () => {
@@ -276,6 +283,24 @@ test("rejeita campos obrigatórios e formatos inválidos do checkout", () => {
 test("normaliza telefone nacional e com DDI", () => {
   assert.equal(normalizarTelefone("(11) 99999-9999"), "11999999999");
   assert.equal(normalizarTelefone("+55 11 99999-9999"), "11999999999");
+});
+
+test("normaliza endereço salvo com as mesmas regras do checkout", () => {
+  assert.deepEqual(normalizarEnderecoEntrega({
+    cep: "12345-678",
+    rua: " Rua das Pizzas ",
+    numero: "10",
+    bairro: "Centro",
+    complemento: "",
+    referencia: "Ao lado da praça",
+  }), {
+    cep: "12345678",
+    rua: "Rua das Pizzas",
+    numero: "10",
+    bairro: "Centro",
+    complemento: null,
+    referencia: "Ao lado da praça",
+  });
 });
 
 test("timeline reflete status real sem modificá-lo", () => {

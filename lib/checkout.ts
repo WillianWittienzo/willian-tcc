@@ -19,6 +19,14 @@ export type DadosCheckout = {
 };
 
 export type DadosEntrega = DadosCheckout;
+export type EnderecoEntrega = {
+  cep: string;
+  rua: string;
+  numero: string;
+  bairro: string;
+  complemento: string | null;
+  referencia: string | null;
+};
 
 export const ROTA_CHECKOUT = "/carrinho?checkout=1";
 
@@ -82,6 +90,21 @@ function normalizarCep(valor: unknown) {
   return valor.replace(/\D/g, "");
 }
 
+export function normalizarEnderecoEntrega(data: unknown): EnderecoEntrega {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    throw new DadosEntregaInvalidosError("Endereço inválido");
+  }
+  const campos = data as Record<string, unknown>;
+  return {
+    cep: normalizarCep(campos.cep),
+    rua: lerTexto(campos, "rua", "Rua", 2, 150)!,
+    numero: lerTexto(campos, "numero", "Número", 1, 20)!,
+    bairro: lerTexto(campos, "bairro", "Bairro", 2, 100)!,
+    complemento: lerTexto(campos, "complemento", "Complemento", 0, 150, false),
+    referencia: lerTexto(campos, "referencia", "Ponto de referência", 0, 200, false),
+  };
+}
+
 export function normalizarDadosCheckout(data: unknown): DadosCheckout {
   if (typeof data !== "object" || data === null || Array.isArray(data)) {
     throw new DadosEntregaInvalidosError("Dados do checkout inválidos");
@@ -97,17 +120,18 @@ export function normalizarDadosCheckout(data: unknown): DadosCheckout {
   }
 
   const entrega = metodoEntrega === "Entrega";
+  const endereco = entrega ? normalizarEnderecoEntrega(campos) : null;
   return {
     nomeCliente: lerTexto(campos, "nomeCliente", "Nome", 2, 100)!,
     telefone: normalizarTelefone(campos.telefone),
     metodoEntrega: metodoEntrega as MetodoEntrega,
     formaPagamento: formaPagamento as FormaPagamento,
-    cep: entrega ? normalizarCep(campos.cep) : null,
-    rua: lerTexto(campos, "rua", "Rua", 2, 150, entrega),
-    numero: lerTexto(campos, "numero", "Número", 1, 20, entrega),
-    bairro: lerTexto(campos, "bairro", "Bairro", 2, 100, entrega),
-    complemento: entrega ? lerTexto(campos, "complemento", "Complemento", 0, 150, false) : null,
-    referencia: entrega ? lerTexto(campos, "referencia", "Ponto de referência", 0, 200, false) : null,
+    cep: endereco?.cep ?? null,
+    rua: endereco?.rua ?? null,
+    numero: endereco?.numero ?? null,
+    bairro: endereco?.bairro ?? null,
+    complemento: endereco?.complemento ?? null,
+    referencia: endereco?.referencia ?? null,
   };
 }
 

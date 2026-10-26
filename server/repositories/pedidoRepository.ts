@@ -28,6 +28,7 @@ type CriarPedidoData = {
     tamanho: NomeTamanho;
     borda: NomeBorda | null;
     precoBorda: number;
+    observacao: string | null;
     quantidade: number;
     precoUnitario: number;
   }[];

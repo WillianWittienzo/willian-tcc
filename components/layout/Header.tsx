@@ -4,13 +4,14 @@ import { useEffect, useState, type MouseEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LuShoppingCart } from "react-icons/lu";
+import { LuChevronDown, LuShoppingCart, LuUserRound } from "react-icons/lu";
 import { useAuth } from "@/app/context/AuthContext";
 import { useCart } from "@/app/context/CartContext";
 import { criarUrlAutenticacao, obterRetornoCompra } from "@/lib/checkout";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [contaOpen, setContaOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, carregando, logout } = useAuth();
   const { items, abrirCarrinho } = useCart();
@@ -25,9 +26,28 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!contaOpen) return;
+
+    function fecharMenuConta(event: PointerEvent) {
+      if (!(event.target as HTMLElement).closest("[data-menu-conta]")) setContaOpen(false);
+    }
+    function fecharComEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setContaOpen(false);
+    }
+
+    document.addEventListener("pointerdown", fecharMenuConta);
+    window.addEventListener("keydown", fecharComEscape);
+    return () => {
+      document.removeEventListener("pointerdown", fecharMenuConta);
+      window.removeEventListener("keydown", fecharComEscape);
+    };
+  }, [contaOpen]);
+
   async function sair() {
     await logout();
     setMenuOpen(false);
+    setContaOpen(false);
     router.push("/");
     router.refresh();
   }
@@ -48,8 +68,25 @@ export default function Header() {
     </>
   ) : user ? (
     <>
-      <li><Link href="/pedidos">Minhas Pizzas</Link></li>
-      <li><button type="button" onClick={() => void sair()} className="rounded-lg bg-red-600 px-5 py-2 text-white transition hover:bg-orange-500">Sair</button></li>
+      <li className="relative" data-menu-conta>
+        <button
+          type="button"
+          onClick={() => setContaOpen((aberto) => !aberto)}
+          aria-haspopup="menu"
+          aria-expanded={contaOpen}
+          aria-controls="menu-conta-desktop"
+          className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-orange-500"
+        >
+          <LuUserRound aria-hidden="true" /> Minha conta <LuChevronDown aria-hidden="true" />
+        </button>
+        {contaOpen && (
+          <ul id="menu-conta-desktop" role="menu" className="absolute right-0 top-full mt-2 w-48 space-y-1 rounded-lg bg-white p-2 text-zinc-800 shadow-xl">
+            <li role="none"><Link role="menuitem" href="/perfil" onClick={() => setContaOpen(false)} className="block rounded px-3 py-2 hover:bg-red-50">Meu Perfil</Link></li>
+            <li role="none"><Link role="menuitem" href="/pedidos" onClick={() => setContaOpen(false)} className="block rounded px-3 py-2 hover:bg-red-50">Minhas Pizzas</Link></li>
+            <li role="none"><button role="menuitem" type="button" onClick={() => void sair()} className="w-full rounded px-3 py-2 text-left font-semibold text-red-700 hover:bg-red-50">Sair da conta</button></li>
+          </ul>
+        )}
+      </li>
     </>
   ) : (
     <>
@@ -67,8 +104,25 @@ export default function Header() {
     </>
   ) : user ? (
     <>
-      <li className="mb-6"><Link href="/pedidos">Minhas Pizzas</Link></li>
-      <li><button type="button" onClick={() => void sair()} className="font-semibold text-red-500">Sair</button></li>
+      <li data-menu-conta>
+        <button
+          type="button"
+          onClick={() => setContaOpen((aberto) => !aberto)}
+          aria-haspopup="menu"
+          aria-expanded={contaOpen}
+          aria-controls="menu-conta-mobile"
+          className="flex items-center gap-2 font-semibold text-red-500"
+        >
+          <LuUserRound aria-hidden="true" /> Minha conta <LuChevronDown aria-hidden="true" />
+        </button>
+        {contaOpen && (
+          <ul id="menu-conta-mobile" role="menu" className="mt-4 space-y-4 border-l border-zinc-700 pl-4">
+            <li role="none"><Link role="menuitem" href="/perfil" onClick={() => setContaOpen(false)}>Meu Perfil</Link></li>
+            <li role="none"><Link role="menuitem" href="/pedidos" onClick={() => setContaOpen(false)}>Minhas Pizzas</Link></li>
+            <li role="none"><button role="menuitem" type="button" onClick={() => void sair()} className="font-semibold text-red-500">Sair da conta</button></li>
+          </ul>
+        )}
+      </li>
     </>
   ) : (
     <>
@@ -92,7 +146,10 @@ export default function Header() {
         <button
           type="button"
           className="flex flex-col gap-2 md:hidden"
-          onClick={() => setMenuOpen((aberto) => !aberto)}
+          onClick={() => {
+            setContaOpen(false);
+            setMenuOpen((aberto) => !aberto);
+          }}
           aria-expanded={menuOpen}
           aria-controls="menu-mobile"
           aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
@@ -107,7 +164,7 @@ export default function Header() {
           <li><Link href="/cardapio">Cardápio</Link></li>
           <li><Link href="/sobre">Sobre</Link></li>
           <li><Link href="/contato">Contato</Link></li>
-          <li><Link href="/acompanhar-pedido">Acompanhar pedido</Link></li>
+          {!carregando && user?.papel === "Cliente" && <li><Link href="/pedidos">Minhas Pizzas</Link></li>}
           <li>
             <button type="button" onClick={abrirCarrinho} className="relative block" aria-label={`Carrinho com ${totalItems} item(ns)`}>
               <LuShoppingCart size={22} className={totalItems > 0 ? "text-red-500" : "text-white"} />
@@ -131,7 +188,7 @@ export default function Header() {
         <li className="mb-6"><Link href="/cardapio">Cardápio</Link></li>
         <li className="mb-6"><Link href="/sobre">Sobre</Link></li>
         <li className="mb-6"><Link href="/contato">Contato</Link></li>
-        <li className="mb-6"><Link href="/acompanhar-pedido">Acompanhar pedido</Link></li>
+        {!carregando && user?.papel === "Cliente" && <li className="mb-6"><Link href="/pedidos">Minhas Pizzas</Link></li>}
         <li className="mb-6">
           <button
             type="button"

@@ -4,6 +4,7 @@ type ConfiguracaoItem = {
   id: number;
   tamanho: TamanhoProduto;
   borda: NomeBorda;
+  observacao?: string;
 };
 
 export function itensTemMesmaConfiguracao(
@@ -12,5 +13,6 @@ export function itensTemMesmaConfiguracao(
 ) {
   return item.id === outroItem.id
     && item.tamanho === outroItem.tamanho
-    && item.borda === outroItem.borda;
+    && item.borda === outroItem.borda
+    && (item.observacao ?? "") === (outroItem.observacao ?? "");
 }

@@ -125,15 +125,21 @@ model Recebimento {
 }
 
 model Usuario {
-  id        Int          @id @default(autoincrement())
-  nome      String
-  email     String       @unique
-  telefone  String?
-  senhaHash String
-  papel     PapelUsuario @default(Cliente)
-  criadoEm  DateTime     @default(now())
-  pedidos   Pedido[]
-  sessoes   Sessao[]
+  id          Int          @id @default(autoincrement())
+  nome        String
+  email       String       @unique
+  telefone    String?
+  cep         String?      @db.VarChar(8)
+  rua         String?      @db.VarChar(150)
+  numero      String?      @db.VarChar(20)
+  bairro      String?      @db.VarChar(100)
+  complemento String?      @db.VarChar(150)
+  referencia  String?      @db.VarChar(200)
+  senhaHash   String
+  papel       PapelUsuario @default(Cliente)
+  criadoEm    DateTime     @default(now())
+  pedidos     Pedido[]
+  sessoes     Sessao[]
 }
 
 model Sessao {
@@ -158,6 +164,7 @@ model ItemPedido {
   precoUnitario Decimal     @db.Decimal(10, 2)
   borda         NomeBorda?
   precoBorda    Decimal     @default(0) @db.Decimal(10, 2)
+  observacao    String?     @db.VarChar(200)
 
   pedido  Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
   produto Produto? @relation(fields: [produtoId], references: [id], onDelete: SetNull)

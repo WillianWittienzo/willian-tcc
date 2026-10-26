@@ -11,7 +11,7 @@ type Props = {
   produto: Card;
   onClose: () => void;
   onAdded?: () => void;
-  configuracaoInicial?: Pick<CartItem, "tamanho" | "borda" | "quantidade">;
+  configuracaoInicial?: Pick<CartItem, "tamanho" | "borda" | "observacao" | "quantidade">;
   onConfirmar?: (item: Omit<CartItem, "quantidade">, quantidade: number) => void;
 };
 
@@ -37,6 +37,7 @@ export function PizzaCustomizationModal({
     BORDAS.find((borda) => borda.nome === configuracaoInicial?.borda) ?? BORDAS[0],
   );
   const [quantidade, setQuantidade] = useState(configuracaoInicial?.quantidade ?? 1);
+  const [observacao, setObservacao] = useState(configuracaoInicial?.observacao ?? "");
   const botaoFechar = useRef<HTMLButtonElement>(null);
   const { addToCart } = useCart();
 
@@ -71,6 +72,7 @@ export function PizzaCustomizationModal({
       tamanho: tamanhoSelecionado.nome,
       borda: bordaSelecionada.nome,
       precoBorda: bordaSelecionada.preco,
+      observacao: observacao.trim(),
       tamanhos: produto.tamanhos,
     };
 
@@ -171,6 +173,20 @@ export function PizzaCustomizationModal({
                 </option>
               ))}
             </select>
+
+            <label className="mt-5 block font-bold" htmlFor={`observacao-modal-${produto.id}`}>
+              Observações para esta pizza
+            </label>
+            <textarea
+              id={`observacao-modal-${produto.id}`}
+              value={observacao}
+              onChange={(event) => setObservacao(event.target.value)}
+              maxLength={200}
+              rows={3}
+              placeholder="Ex.: sem cebola, pouco molho, bem assada"
+              className="mt-2 w-full resize-y rounded-md border border-gray-300 p-3 focus:border-red-600 focus:outline-none"
+            />
+            <p className="mt-1 text-right text-xs text-gray-500">{observacao.length}/200</p>
 
             <div className="mt-5">
               <span className="font-bold">Quantidade</span>

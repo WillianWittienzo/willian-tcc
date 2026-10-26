@@ -108,10 +108,10 @@ export function CartDrawer() {
                 <p className="mt-1 text-sm">Escolha uma pizza para começar.</p>
               </div>
             ) : items.map((item) => {
-              const chave = { id: item.id, tamanho: item.tamanho, borda: item.borda };
+              const chave = { id: item.id, tamanho: item.tamanho, borda: item.borda, observacao: item.observacao };
               const valorUnitario = item.preco + item.precoBorda;
               return (
-                <article key={`${item.id}-${item.tamanho}-${item.borda}`} className="border-b py-4 first:pt-0">
+                <article key={`${item.id}-${item.tamanho}-${item.borda}-${item.observacao ?? ""}`} className="border-b py-4 first:pt-0">
                   <div className="flex gap-3">
                     <Image
                       src={item.image}
@@ -134,6 +134,7 @@ export function CartDrawer() {
                         </button>
                       </div>
                       <p className="text-sm text-gray-600">{item.tamanho} · {item.borda}</p>
+                      {item.observacao && <p className="mt-1 text-sm text-gray-600">Observação: {item.observacao}</p>}
                       <p className="mt-1 text-sm text-gray-600">Unitário: {moeda.format(valorUnitario)}</p>
                       <button
                         type="button"
@@ -223,6 +224,7 @@ export function CartDrawer() {
               id: itemEditando.id,
               tamanho: itemEditando.tamanho,
               borda: itemEditando.borda,
+              observacao: itemEditando.observacao,
             },
             item,
             quantidade,

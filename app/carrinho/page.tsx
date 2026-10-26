@@ -7,17 +7,19 @@ import { useEffect, useRef, useState } from "react";
 import { LuTrash } from "react-icons/lu";
 import { useAuth } from "@/app/context/AuthContext";
 import { useCart } from "@/app/context/CartContext";
-import { criarPedido } from "@/client/pedidoClient";
+import { criarPedido, type Pedido } from "@/client/pedidoClient";
 import { CheckoutModal } from "@/components/carrinho/CheckoutModal";
 import { criarUrlAutenticacao, type DadosCheckout } from "@/lib/checkout";
+
+const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function CarrinhoPage() {
   const [finalizando, setFinalizando] = useState(false);
   const [checkoutAberto, setCheckoutAberto] = useState(false);
-  const [pedidoConfirmado, setPedidoConfirmado] = useState<number | null>(null);
-  const [telefoneConfirmado, setTelefoneConfirmado] = useState("");
+  const [pedidoConfirmado, setPedidoConfirmado] = useState<Pedido | null>(null);
   const [erroFluxo, setErroFluxo] = useState("");
   const retornoTratado = useRef(false);
+  const finalizacaoEmAndamento = useRef(false);
   const router = useRouter();
   const { user, carregando } = useAuth();
   const { items, addToCart, decreaseQuantity, removeFromCart, clearCart } = useCart();
@@ -63,7 +65,8 @@ export default function CarrinhoPage() {
   }
 
   async function confirmarPedido(dadosCheckout: DadosCheckout) {
-    if (items.length === 0 || finalizando || user?.papel !== "Cliente") return;
+    if (items.length === 0 || finalizando || finalizacaoEmAndamento.current || user?.papel !== "Cliente") return;
+    finalizacaoEmAndamento.current = true;
     setFinalizando(true);
     try {
       const pedido = await criarPedido({
@@ -72,14 +75,15 @@ export default function CarrinhoPage() {
           produtoId: item.id,
           tamanho: item.tamanho,
           borda: item.borda,
+          observacao: item.observacao ?? "",
           quantidade: item.quantidade,
         })),
       });
       clearCart();
       setCheckoutAberto(false);
-      setPedidoConfirmado(pedido.id);
-      setTelefoneConfirmado(dadosCheckout.telefone);
+      setPedidoConfirmado(pedido);
     } finally {
+      finalizacaoEmAndamento.current = false;
       setFinalizando(false);
     }
   }
@@ -90,9 +94,9 @@ export default function CarrinhoPage() {
     <div className="max-w-6xl mx-auto p-6 mt-20 grid md:grid-cols-3 gap-8">
       <div className="md:col-span-2 space-y-4">
         {items.length === 0 ? <p className="text-center text-gray-500">Seu carrinho está vazio 🍕</p> : items.map((item) => {
-          const chave = { id: item.id, tamanho: item.tamanho, borda: item.borda };
+          const chave = { id: item.id, tamanho: item.tamanho, borda: item.borda, observacao: item.observacao ?? "" };
           return (
-            <div key={`${item.id}-${item.tamanho}-${item.borda}`} className="bg-white p-4 rounded-xl shadow flex justify-between items-center gap-4">
+            <div key={`${item.id}-${item.tamanho}-${item.borda}-${item.observacao ?? ""}`} className="bg-white p-4 rounded-xl shadow flex justify-between items-center gap-4">
               <div className="flex gap-4 items-center">
                 <Image src={item.image} alt={item.nome} width={80} height={80} className="rounded-lg object-cover" />
                 <div>
@@ -101,6 +105,7 @@ export default function CarrinhoPage() {
                   <p className="text-sm text-gray-500">
                     Borda: {item.borda}{item.precoBorda > 0 ? ` (+R$ ${item.precoBorda.toFixed(2)})` : " — R$ 0,00"}
                   </p>
+                  {item.observacao && <p className="text-sm text-gray-500">Observação: {item.observacao}</p>}
                   <p className="text-sm text-gray-500">R$ {(item.preco + item.precoBorda).toFixed(2)}</p>
                   <div className="flex items-center gap-3 mt-2">
                     <button type="button" onClick={() => decreaseQuantity(chave)} className="border border-red-500 text-red-500 w-8 h-8 rounded-lg">-</button>
@@ -117,6 +122,7 @@ export default function CarrinhoPage() {
                       tamanho: item.tamanho,
                       borda: item.borda,
                       precoBorda: item.precoBorda,
+                      observacao: item.observacao ?? "",
                       tamanhos: item.tamanhos,
                     })} className="border border-red-500 text-red-500 w-8 h-8 rounded-lg">+</button>
                     <button type="button" aria-label="Remover item" onClick={() => removeFromCart(chave)} className="text-red-500 ml-2"><LuTrash /></button>
@@ -148,21 +154,45 @@ export default function CarrinhoPage() {
         />
       )}
 
-      {pedidoConfirmado !== null && (
+      {pedidoConfirmado && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacao">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 text-center shadow-xl">
-            <h2 id="titulo-confirmacao" className="text-2xl font-bold text-green-700">Pedido confirmado!</h2>
-            <p className="mt-3 text-lg">Pedido #{pedidoConfirmado} realizado com sucesso.</p>
-            <p className="mt-2 text-sm text-gray-500">Telefone utilizado: {telefoneConfirmado.replace(/^(\d{2})\d+(\d{4})$/, "($1) *****-$2")}</p>
-            <Link href={`/acompanhar-pedido?pedido=${pedidoConfirmado}`} className="mt-6 block rounded-md bg-green-700 px-5 py-3 font-semibold text-white hover:bg-green-800">
-              Acompanhar pedido
+          <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
+            <h2 id="titulo-confirmacao" className="text-2xl font-bold text-green-700">Pedido realizado com sucesso!</h2>
+            <p className="mt-2 text-lg font-semibold">Pedido #{pedidoConfirmado.id}</p>
+
+            <div className="mt-5 divide-y rounded-lg bg-gray-50 px-4">
+              {pedidoConfirmado.itens.map((item) => (
+                <div key={item.id} className="flex justify-between gap-4 py-3 text-sm">
+                  <span>
+                    {item.quantidade}× {item.nomeProduto} ({item.tamanho})
+                    {item.observacao && <small className="block text-gray-500">Observação: {item.observacao}</small>}
+                  </span>
+                  <span className="font-semibold">{moeda.format((item.precoUnitario + item.precoBorda) * item.quantidade)}</span>
+                </div>
+              ))}
+            </div>
+
+            <dl className="mt-4 space-y-2 border-t pt-4">
+              <div className="flex justify-between gap-4">
+                <dt>Atendimento</dt>
+                <dd className="font-semibold">{pedidoConfirmado.metodoEntrega === "Retirada" ? "Retirada no local" : "Entrega"}</dd>
+              </div>
+              <div className="flex justify-between gap-4 text-lg font-bold">
+                <dt>Valor final</dt>
+                <dd>{moeda.format(pedidoConfirmado.valorTotal)}</dd>
+              </div>
+            </dl>
+
+            <Link href={`/pedidos?pedido=${pedidoConfirmado.id}`} className="mt-6 block rounded-md bg-green-700 px-5 py-3 text-center font-semibold text-white hover:bg-green-800">
+              Acompanhar em Minhas Pizzas
             </Link>
-            <Link href="/cardapio" onClick={() => setPedidoConfirmado(null)} className="mt-6 block rounded-md bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700">
+            <Link href="/cardapio" onClick={() => setPedidoConfirmado(null)} className="mt-3 block rounded-md border border-red-700 px-5 py-3 text-center font-semibold text-red-700 hover:bg-red-50">
               Voltar ao cardápio
             </Link>
           </div>
         </div>
       )}
+
     </div>
   );
 }
