@@ -16,8 +16,10 @@ import { calcularTaxaEntregaEmCentavos } from "@/lib/pedido";
 import {
   calcularAnosDisponiveis,
   calcularTotalPaginas,
+  normalizarFiltrosData,
   normalizarFiltrosPedidos,
   obterIntervaloData,
+  transicaoStatusPermitida,
 } from "@/lib/filtrosPedido";
 import { pedidoRepository } from "@/server/repositories/pedidoRepository";
 
@@ -26,6 +28,7 @@ type ItemRecebido = { produtoId: number; tamanho: TamanhoPedido; borda: NomeBord
 
 export class PedidoInvalidoError extends Error {}
 export class PedidoNaoEncontradoError extends Error {}
+export class PedidoConflitoError extends Error {}
 
 type PedidoPersistido = NonNullable<Awaited<ReturnType<typeof pedidoRepository.buscarPublico>>>;
 
@@ -157,11 +160,23 @@ export const pedidoService = {
     };
   },
 
+  async listarKanban(parametros: Record<string, unknown>) {
+    const filtros = normalizarFiltrosData(parametros);
+    const { pedidos, pedidoMaisAntigo } = await pedidoRepository.listarKanban(
+      obterIntervaloData(filtros),
+    );
+    return {
+      pedidos: pedidos.map(formatarPedido),
+      total: pedidos.length,
+      anosDisponiveis: calcularAnosDisponiveis(pedidoMaisAntigo?.criadoEm ?? null),
+    };
+  },
+
   async listarDoCliente(clienteId: number) {
     return (await pedidoRepository.listarDoCliente(clienteId)).map(formatarPedido);
   },
 
-  async criar(data: unknown) {
+  async criar(data: unknown, clienteId: number | null = null) {
     const itensRecebidos = validarItens(data);
     let checkout;
     try {
@@ -207,7 +222,7 @@ export const pedidoService = {
     const taxaEntregaEmCentavos = calcularTaxaEntregaEmCentavos(subtotalEmCentavos, checkout.metodoEntrega);
     const valorTotal = (subtotalEmCentavos + taxaEntregaEmCentavos) / 100;
     return formatarPedido(await pedidoRepository.criar({
-      clienteId: null,
+      clienteId,
       nomeCliente: checkout.nomeCliente,
       telefone: checkout.telefone,
       cep: checkout.cep,
@@ -224,15 +239,38 @@ export const pedidoService = {
     }));
   },
 
+  async cancelarDoCliente(id: number, clienteId: number) {
+    if (!Number.isInteger(id) || id <= 0) throw new PedidoInvalidoError("ID do pedido inválido");
+
+    const resultado = await pedidoRepository.cancelarPendenteDoCliente(id, clienteId);
+    if (resultado.count === 1) {
+      const pedidoCancelado = await pedidoRepository.buscarDoCliente(id, clienteId);
+      if (!pedidoCancelado) throw new PedidoNaoEncontradoError("Pedido não encontrado");
+      return formatarPedido(pedidoCancelado);
+    }
+
+    const pedido = await pedidoRepository.buscarDoCliente(id, clienteId);
+    if (!pedido) throw new PedidoNaoEncontradoError("Pedido não encontrado");
+    throw new PedidoConflitoError("Somente pedidos pendentes podem ser cancelados");
+  },
+
   async atualizarStatus(id: number, data: unknown) {
     if (!Number.isInteger(id) || id <= 0) throw new PedidoInvalidoError("ID do pedido inválido");
     const status = obterStatus(data);
-    try {
-      return formatarPedido(await pedidoRepository.atualizarStatus(id, status));
-    } catch (error) {
-      if (registroNaoEncontrado(error)) throw new PedidoNaoEncontradoError("Pedido não encontrado");
-      throw error;
+    const atual = await pedidoRepository.buscarPorId(id);
+    if (!atual) throw new PedidoNaoEncontradoError("Pedido não encontrado");
+    if (!transicaoStatusPermitida(atual.status, status)) {
+      throw new PedidoConflitoError("Transição de status não permitida");
     }
+    if (atual.status === status) return formatarPedido(atual);
+
+    const atualizado = await pedidoRepository.atualizarStatusCondicional(id, atual.status, status);
+    if (atualizado.count !== 1) {
+      throw new PedidoConflitoError("O pedido foi atualizado por outra operação. Recarregue os dados.");
+    }
+    const pedidoAtualizado = await pedidoRepository.buscarPorId(id);
+    if (!pedidoAtualizado) throw new PedidoNaoEncontradoError("Pedido não encontrado");
+    return formatarPedido(pedidoAtualizado);
   },
 
   async atualizarStatusRecebimento(id: number, data: unknown) {

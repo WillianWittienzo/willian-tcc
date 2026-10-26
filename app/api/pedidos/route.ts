@@ -3,14 +3,16 @@ import { pedidoController } from "@/server/controllers/pedidoController";
 import { verificarAdmin } from "@/server/auth/autorizacao";
 import { requisicaoDeMesmaOrigem } from "@/server/auth/origem";
 import { registrarTentativaPedido, verificarLimitePedido } from "@/server/auth/limitePedido";
+import { usuarioDaRequisicao } from "@/server/auth/sessao";
 
 export async function GET(request: NextRequest) {
   const bloqueio = await verificarAdmin(request);
   if (bloqueio) return NextResponse.json({ erro: bloqueio.erro }, { status: bloqueio.status });
 
-  const resultado = await pedidoController.listarTodos(
-    Object.fromEntries(request.nextUrl.searchParams.entries()),
-  );
+  const parametros = Object.fromEntries(request.nextUrl.searchParams.entries());
+  const resultado = parametros.visualizacao === "kanban"
+    ? await pedidoController.listarKanban(parametros)
+    : await pedidoController.listarTodos(parametros);
 
   return NextResponse.json(resultado.data, {
     status: resultado.status,
@@ -34,7 +36,9 @@ export async function POST(request: NextRequest) {
   registrarTentativaPedido(chave);
 
   const data: unknown = await request.json().catch(() => null);
-  const resultado = await pedidoController.criar(data);
+  const usuario = await usuarioDaRequisicao(request);
+  const clienteId = usuario?.papel === "Cliente" ? usuario.id : null;
+  const resultado = await pedidoController.criar(data, clienteId);
 
   return NextResponse.json(resultado.data, {
     status: resultado.status,

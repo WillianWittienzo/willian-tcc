@@ -15,6 +15,7 @@
     "sqlite:seed": "cross-env DATABASE_PROVIDER=sqlite SQLITE_DATABASE_URL=file:./prisma/local/brasa-quente.db tsx prisma/seed.ts",
     "sqlite:setup": "npm run sqlite:init && npm run sqlite:seed",
     "sqlite:admin": "cross-env DATABASE_PROVIDER=sqlite SQLITE_DATABASE_URL=file:./prisma/local/brasa-quente.db tsx scripts/criarAdmin.ts",
+    "sqlite:cliente-teste": "cross-env DATABASE_PROVIDER=sqlite SQLITE_DATABASE_URL=file:./prisma/local/brasa-quente.db tsx scripts/configurarClienteTeste.ts",
     "sqlite:check": "cross-env DATABASE_PROVIDER=sqlite SQLITE_DATABASE_URL=file:./prisma/local/brasa-quente.db tsx scripts/verificarSqlite.ts",
     "admin:create": "tsx scripts/criarAdmin.ts"
   },

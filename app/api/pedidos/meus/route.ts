@@ -7,6 +7,9 @@ export async function GET(request: NextRequest) {
   if (!usuario) {
     return NextResponse.json({ erro: "Autenticação necessária" }, { status: 401 });
   }
+  if (usuario.papel !== "Cliente") {
+    return NextResponse.json({ erro: "Acesso disponível somente para clientes" }, { status: 403 });
+  }
 
   const resultado = await pedidoController.listarDoCliente(usuario.id);
   return NextResponse.json(resultado.data, { status: resultado.status });

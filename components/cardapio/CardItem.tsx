@@ -2,83 +2,74 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { LuTrash } from "react-icons/lu";
-import { useCart } from "@/app/context/CartContext";
 import type { Card } from "@/components/data/cardapio";
-import { BORDAS } from "@/lib/catalogo";
+import { PizzaCustomizationModal } from "@/components/cardapio/PizzaCustomizationModal";
+import { useCart } from "@/app/context/CartContext";
 
-export function CardItem({ id, nome, categoria, image, description, tamanhos, descontoPercentual }: Card) {
-  const { items, addToCart, decreaseQuantity, removeFromCart } = useCart();
-  const [tamanhoSelecionado, setTamanhoSelecionado] = useState(tamanhos[0]);
-  const [bordaSelecionada, setBordaSelecionada] = useState<(typeof BORDAS)[number]>(BORDAS[0]);
-  const chave = { id, tamanho: tamanhoSelecionado.nome, borda: bordaSelecionada.nome };
-  const itemNoCarrinho = items.find((item) => item.id === id && item.tamanho === chave.tamanho && item.borda === chave.borda);
-  const precoPizza = tamanhoSelecionado.precoPromocional ?? tamanhoSelecionado.preco;
+const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
-  const adicionar = () => addToCart({
-    id,
-    nome,
-    categoria,
-    image,
-    description,
-    preco: precoPizza,
-    precoOriginal: tamanhoSelecionado.preco,
-    descontoPercentual,
-    tamanho: tamanhoSelecionado.nome,
-    borda: bordaSelecionada.nome,
-    precoBorda: bordaSelecionada.preco,
-  });
+export function CardItem(produto: Card) {
+  const [aberto, setAberto] = useState(false);
+  const { abrirCarrinho } = useCart();
+  const tamanhosValidos = produto.tamanhos.filter(
+    (tamanho) => Number.isFinite(tamanho.preco) && tamanho.preco > 0,
+  );
+  const menorTamanho = tamanhosValidos[0];
 
   return (
-    <div className="rounded-xl bg-white p-4 shadow relative hover:-translate-y-1 transition-all duration-200">
-      <div className="relative h-52 w-full">
-        <Image src={image} alt={nome} fill unoptimized={image.startsWith("http")} sizes="(max-width: 768px) 100vw, 33vw" className="rounded-sm object-cover" />
-      </div>
-      <div className="absolute top-5 left-5 bg-red-800/90 backdrop-blur-sm rounded-lg px-3 py-1">
-        <p className="text-[13px] text-white leading-none">{categoria}</p>
-      </div>
-      {descontoPercentual !== null && (
-        <div className="absolute top-5 right-5 rounded-lg bg-amber-500 px-3 py-1 text-sm font-bold text-black">
-          -{descontoPercentual}%
-        </div>
-      )}
-
-      <h3 className="mt-2 text-lg font-bold">{nome}</h3>
-      <p className="mt-2 text-black">{description}</p>
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        {tamanhos.map((tamanho) => (
-          <button key={tamanho.nome} type="button" onClick={() => setTamanhoSelecionado(tamanho)} className={`px-3 py-1 rounded-md border ${tamanhoSelecionado.nome === tamanho.nome ? "bg-red-600 text-white" : "border-gray-300"}`}>
-            {tamanho.nome}
-          </button>
-        ))}
-      </div>
-
-      <label className="mt-3 block text-sm font-semibold" htmlFor={`borda-${id}`}>Borda</label>
-      <select id={`borda-${id}`} value={bordaSelecionada.nome} onChange={(event) => setBordaSelecionada(BORDAS.find((borda) => borda.nome === event.target.value) ?? BORDAS[0])} className="mt-1 w-full rounded-md border p-2">
-        {BORDAS.map((borda) => (
-          <option key={borda.nome} value={borda.nome}>
-            {borda.nome}{borda.preco === 0 ? " — R$ 0,00" : ` (+R$ ${borda.preco.toFixed(2).replace(".", ",")})`}
-          </option>
-        ))}
-      </select>
-
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <div>
-          {tamanhoSelecionado.precoPromocional !== null && <p className="text-sm text-gray-500 line-through">R$ {tamanhoSelecionado.preco.toFixed(2)}</p>}
-          <span className="text-[hsl(33_100%_50%)] font-semibold text-2xl">R$ {(precoPizza + bordaSelecionada.preco).toFixed(2)}</span>
-        </div>
-        {!itemNoCarrinho ? (
-          <button type="button" onClick={adicionar} className="bg-red-600 text-white px-4 py-2 rounded-lg">Adicionar</button>
-        ) : (
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => decreaseQuantity(chave)} className="border border-red-500 text-red-500 w-8 h-8 rounded-lg">-</button>
-            <span>{itemNoCarrinho.quantidade}</span>
-            <button type="button" onClick={adicionar} className="border border-red-500 text-red-500 w-8 h-8 rounded-lg">+</button>
-            <button type="button" aria-label="Remover item" onClick={() => removeFromCart(chave)} className="text-red-500"><LuTrash /></button>
+    <>
+      <article className="relative overflow-hidden rounded-xl bg-white shadow transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+        <button
+          type="button"
+          onClick={() => setAberto(true)}
+          disabled={!menorTamanho}
+          className="block h-full w-full p-4 text-left disabled:cursor-not-allowed"
+          aria-label={`Comprar pizza ${produto.nome}`}
+        >
+          <div className="relative h-52 w-full">
+            <Image
+              src={produto.image}
+              alt={produto.nome}
+              fill
+              unoptimized={produto.image.startsWith("http")}
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className="rounded-sm object-cover"
+            />
           </div>
-        )}
-      </div>
-    </div>
+          <span className="absolute left-5 top-5 rounded-lg bg-red-800/90 px-3 py-1 text-[13px] leading-none text-white backdrop-blur-sm">
+            {produto.categoria}
+          </span>
+          {produto.descontoPercentual !== null && (
+            <span className="absolute right-5 top-5 rounded-lg bg-amber-500 px-3 py-1 text-sm font-bold text-black">
+              -{produto.descontoPercentual}%
+            </span>
+          )}
+
+          <h2 className="mt-3 text-lg font-bold">{produto.nome}</h2>
+          <p className="mt-2 line-clamp-2 text-black">{produto.description}</p>
+          <div className="mt-4 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs text-gray-500">A partir de</p>
+              <span className="text-xl font-semibold text-[hsl(33_100%_50%)]">
+                {menorTamanho
+                  ? moeda.format(menorTamanho.precoPromocional ?? menorTamanho.preco)
+                  : "Indisponível"}
+              </span>
+            </div>
+            <span className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white">
+              Comprar
+            </span>
+          </div>
+        </button>
+      </article>
+
+      {aberto && (
+        <PizzaCustomizationModal
+          produto={produto}
+          onClose={() => setAberto(false)}
+          onAdded={abrirCarrinho}
+        />
+      )}
+    </>
   );
 }

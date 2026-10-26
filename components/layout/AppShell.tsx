@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { AuthProvider } from "@/app/context/AuthContext";
 import { CartProvider } from "@/app/context/CartContext";
+import { CartDrawer } from "@/components/carrinho/CartDrawer";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 
@@ -19,6 +20,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Header />
             <div className="flex-1">{children}</div>
             <Footer />
+            <CartDrawer />
           </div>
         )}
       </CartProvider>

@@ -62,8 +62,29 @@ export const pedidoRepository = {
     ]);
     return { total, pedidos, pedidoMaisAntigo };
   },
+  async listarKanban(intervalo?: { gte: Date; lt: Date }) {
+    const where = intervalo ? { criadoEm: intervalo } : {};
+    const [pedidos, pedidoMaisAntigo] = await prisma.$transaction([
+      prisma.pedido.findMany({
+        where,
+        include: incluirPedido,
+        orderBy: [{ criadoEm: "desc" }, { id: "desc" }],
+      }),
+      prisma.pedido.findFirst({ orderBy: { criadoEm: "asc" }, select: { criadoEm: true } }),
+    ]);
+    return { pedidos, pedidoMaisAntigo };
+  },
   listarDoCliente(clienteId: number) {
     return prisma.pedido.findMany({ where: { clienteId }, include: incluirPedido, orderBy: [{ criadoEm: "desc" }, { id: "desc" }] });
+  },
+  buscarDoCliente(id: number, clienteId: number) {
+    return prisma.pedido.findFirst({
+      where: { id, clienteId },
+      include: incluirPedido,
+    });
+  },
+  buscarPorId(id: number) {
+    return prisma.pedido.findUnique({ where: { id }, include: incluirPedido });
   },
   buscarProdutosComTamanhos(produtoIds: number[]) {
     return prisma.produto.findMany({ where: { id: { in: produtoIds } }, include: { tamanhos: true } });
@@ -94,8 +115,17 @@ export const pedidoRepository = {
       include: incluirPedido,
     });
   },
-  atualizarStatus(id: number, status: StatusPedido) {
-    return prisma.pedido.update({ where: { id }, data: { status }, include: incluirPedido });
+  atualizarStatusCondicional(id: number, statusAtual: StatusPedido, status: StatusPedido) {
+    return prisma.pedido.updateMany({
+      where: { id, status: statusAtual },
+      data: { status },
+    });
+  },
+  cancelarPendenteDoCliente(id: number, clienteId: number) {
+    return prisma.pedido.updateMany({
+      where: { id, clienteId, status: StatusPedido.Pendente },
+      data: { status: StatusPedido.Cancelado },
+    });
   },
   atualizarStatusRecebimento(pedidoId: number, status: StatusRecebimento) {
     return prisma.recebimento.update({

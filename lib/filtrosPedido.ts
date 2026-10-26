@@ -46,6 +46,18 @@ export const LIMITE_MAXIMO_PEDIDOS = 50;
 export const FUSO_HORARIO_PEDIDOS = "America/Sao_Paulo";
 export const STATUS_EXCLUIDO_RECEITA: StatusPedido = "Cancelado";
 
+export const TRANSICOES_STATUS_PEDIDO: Record<StatusPedido, readonly StatusPedido[]> = {
+  Pendente: ["EmPreparo", "Cancelado"],
+  EmPreparo: ["SaiuParaEntrega", "Cancelado"],
+  SaiuParaEntrega: ["Entregue", "Cancelado"],
+  Entregue: [],
+  Cancelado: [],
+};
+
+export function transicaoStatusPermitida(atual: StatusPedido, proximo: StatusPedido) {
+  return atual === proximo || TRANSICOES_STATUS_PEDIDO[atual].includes(proximo);
+}
+
 export class ParametrosFiltroInvalidosError extends Error {}
 
 type ParametrosBusca = Record<string, unknown>;

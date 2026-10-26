@@ -5,6 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { useAuth } from "../context/AuthContext"
 import { useRouter } from "next/navigation"
+import { criarUrlAutenticacao, obterRetornoCompra } from "@/lib/checkout"
 
 export default function LoginPage() {
 
@@ -24,7 +25,9 @@ export default function LoginPage() {
 
         try {
             const usuario = await login(email, senha)
-            router.push(usuario.papel === "Admin" ? "/admin" : "/cardapio")
+            const retorno = obterRetornoCompra(window.location.search)
+            router.replace(usuario.papel === "Admin" ? "/admin" : retorno ?? "/pedidos")
+            router.refresh()
         } catch (error) {
             setErro(error instanceof Error ? error.message : "Erro ao entrar")
         } finally {
@@ -99,7 +102,15 @@ export default function LoginPage() {
 
                 <p className="text-center text-sm text-gray-500 mt-6">
                     Ainda não tem conta?{" "}
-                    <Link href="/cadastro" className="text-red-700 font-medium">
+                    <Link
+                        href="/cadastro"
+                        onClick={(event) => {
+                            if (!obterRetornoCompra(window.location.search)) return
+                            event.preventDefault()
+                            router.push(criarUrlAutenticacao("/cadastro"))
+                        }}
+                        className="text-red-700 font-medium"
+                    >
                         Cadastre-se
                     </Link>
                 </p>

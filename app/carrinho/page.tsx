@@ -2,27 +2,68 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { LuTrash } from "react-icons/lu";
+import { useAuth } from "@/app/context/AuthContext";
 import { useCart } from "@/app/context/CartContext";
 import { criarPedido } from "@/client/pedidoClient";
 import { CheckoutModal } from "@/components/carrinho/CheckoutModal";
-import type { DadosCheckout } from "@/lib/checkout";
+import { criarUrlAutenticacao, type DadosCheckout } from "@/lib/checkout";
 
 export default function CarrinhoPage() {
   const [finalizando, setFinalizando] = useState(false);
   const [checkoutAberto, setCheckoutAberto] = useState(false);
   const [pedidoConfirmado, setPedidoConfirmado] = useState<number | null>(null);
   const [telefoneConfirmado, setTelefoneConfirmado] = useState("");
+  const [erroFluxo, setErroFluxo] = useState("");
+  const retornoTratado = useRef(false);
+  const router = useRouter();
+  const { user, carregando } = useAuth();
   const { items, addToCart, decreaseQuantity, removeFromCart, clearCart } = useCart();
 
+  useEffect(() => {
+    if (carregando || retornoTratado.current) return;
+    const checkoutSolicitado = new URLSearchParams(window.location.search).get("checkout") === "1";
+    if (!checkoutSolicitado) return;
+
+    if (!user) {
+      retornoTratado.current = true;
+      router.replace(criarUrlAutenticacao("/login"));
+      return;
+    }
+    if (user.papel === "Admin") {
+      const timer = window.setTimeout(() => {
+        retornoTratado.current = true;
+        setErroFluxo("A conta administrativa não pode finalizar compras. Entre com uma conta de cliente.");
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+    if (!items.length) return;
+
+    const timer = window.setTimeout(() => {
+      retornoTratado.current = true;
+      setCheckoutAberto(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [carregando, items.length, router, user]);
+
   function abrirCheckout() {
-    if (items.length === 0 || finalizando) return;
+    if (items.length === 0 || finalizando || carregando) return;
+    setErroFluxo("");
+    if (!user) {
+      router.push(criarUrlAutenticacao("/login"));
+      return;
+    }
+    if (user.papel === "Admin") {
+      setErroFluxo("A conta administrativa não pode finalizar compras. Entre com uma conta de cliente.");
+      return;
+    }
     setCheckoutAberto(true);
   }
 
   async function confirmarPedido(dadosCheckout: DadosCheckout) {
-    if (items.length === 0 || finalizando) return;
+    if (items.length === 0 || finalizando || user?.papel !== "Cliente") return;
     setFinalizando(true);
     try {
       const pedido = await criarPedido({
@@ -76,6 +117,7 @@ export default function CarrinhoPage() {
                       tamanho: item.tamanho,
                       borda: item.borda,
                       precoBorda: item.precoBorda,
+                      tamanhos: item.tamanhos,
                     })} className="border border-red-500 text-red-500 w-8 h-8 rounded-lg">+</button>
                     <button type="button" aria-label="Remover item" onClick={() => removeFromCart(chave)} className="text-red-500 ml-2"><LuTrash /></button>
                   </div>
@@ -91,7 +133,8 @@ export default function CarrinhoPage() {
         <h2 className="text-lg font-bold mb-4">Resumo</h2>
         <div className="flex justify-between mb-2"><span>Subtotal</span><span>R$ {subtotal.toFixed(2)}</span></div>
         <p className="mb-4 text-sm text-gray-500">A taxa e o total serão exibidos após escolher Entrega ou Retirada.</p>
-        <button type="button" onClick={abrirCheckout} disabled={!items.length || finalizando} className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100">Finalizar Pedido</button>
+        {erroFluxo && <p role="alert" className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">{erroFluxo}</p>}
+        <button type="button" onClick={abrirCheckout} disabled={!items.length || finalizando || carregando} className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100">{carregando ? "Verificando sessão..." : "Finalizar Pedido"}</button>
         <Link href="/cardapio" className="block mt-6 w-full text-black py-2 bg-yellow-600 rounded-lg transition duration-300 hover:bg-yellow-500 hover:scale-105 text-center">Continuar comprando</Link>
       </div>
 

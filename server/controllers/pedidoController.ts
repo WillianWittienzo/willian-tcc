@@ -1,4 +1,5 @@
 import {
+  PedidoConflitoError,
   PedidoInvalidoError,
   PedidoNaoEncontradoError,
   pedidoService,
@@ -24,6 +25,18 @@ export const pedidoController = {
     }
   },
 
+  async listarKanban(parametros: Record<string, unknown>) {
+    try {
+      return { status: 200, data: await pedidoService.listarKanban(parametros) };
+    } catch (error) {
+      if (error instanceof ParametrosFiltroInvalidosError) {
+        return { status: 400, data: { erro: error.message } };
+      }
+      console.error("Erro ao listar Kanban de pedidos:", error);
+      return { status: 500, data: { erro: "Erro ao buscar pedidos" } };
+    }
+  },
+
   async listarDoCliente(clienteId: number) {
     try {
       return {
@@ -36,9 +49,9 @@ export const pedidoController = {
     }
   },
 
-  async criar(data: unknown) {
+  async criar(data: unknown, clienteId: number | null = null) {
     try {
-      const pedido = await pedidoService.criar(data);
+      const pedido = await pedidoService.criar(data, clienteId);
 
       return {
         status: 201,
@@ -61,6 +74,27 @@ export const pedidoController = {
     }
   },
 
+  async cancelarDoCliente(id: number, clienteId: number) {
+    try {
+      return {
+        status: 200,
+        data: await pedidoService.cancelarDoCliente(id, clienteId),
+      };
+    } catch (error) {
+      if (error instanceof PedidoInvalidoError) {
+        return { status: 400, data: { erro: error.message } };
+      }
+      if (error instanceof PedidoNaoEncontradoError) {
+        return { status: 404, data: { erro: error.message } };
+      }
+      if (error instanceof PedidoConflitoError) {
+        return { status: 409, data: { erro: error.message } };
+      }
+      console.error("Erro ao cancelar pedido do cliente:", error);
+      return { status: 500, data: { erro: "Erro ao cancelar pedido" } };
+    }
+  },
+
   async atualizarStatus(id: number, data: unknown) {
     try {
       const pedido = await pedidoService.atualizarStatus(id, data);
@@ -73,6 +107,10 @@ export const pedidoController = {
 
       if (error instanceof PedidoNaoEncontradoError) {
         return { status: 404, data: { erro: error.message } };
+      }
+
+      if (error instanceof PedidoConflitoError) {
+        return { status: 409, data: { erro: error.message } };
       }
 
       console.error("Erro ao atualizar status do pedido:", error);

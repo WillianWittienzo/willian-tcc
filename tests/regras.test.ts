@@ -5,8 +5,11 @@ import { aplicarDesconto, buscarBorda, TAMANHOS } from "../lib/catalogo";
 import {
   DadosEntregaInvalidosError,
   FORMAS_PAGAMENTO,
+  ROTA_CHECKOUT,
+  criarUrlAutenticacao,
   normalizarDadosEntrega,
   normalizarTelefone,
+  obterRetornoCompra,
 } from "../lib/checkout";
 import { calcularTaxaEntregaEmCentavos } from "../lib/pedido";
 import { criarTimeline } from "../lib/acompanhamento";
@@ -19,6 +22,7 @@ import {
   normalizarFiltrosData,
   normalizarFiltrosPedidos,
   obterIntervaloData,
+  transicaoStatusPermitida,
 } from "../lib/filtrosPedido";
 import { registrarTentativaPedido, verificarLimitePedido } from "../server/auth/limitePedido";
 import {
@@ -55,6 +59,12 @@ test("formas de pagamento são uma lista fechada", () => {
       formaPagamento,
     }).formaPagamento, formaPagamento);
   }
+});
+
+test("preserva somente o retorno conhecido do checkout na autenticação", () => {
+  assert.equal(obterRetornoCompra(`?retorno=${encodeURIComponent(ROTA_CHECKOUT)}`), ROTA_CHECKOUT);
+  assert.equal(obterRetornoCompra("?retorno=https://site-malicioso.test"), null);
+  assert.equal(criarUrlAutenticacao("/login"), "/login?retorno=%2Fcarrinho%3Fcheckout%3D1");
 });
 
 test("calcula promoção com arredondamento em centavos", () => {
@@ -149,6 +159,16 @@ test("calcula primeira e última página em blocos de dez", () => {
 
 test("mantém pedidos cancelados fora da receita do dashboard", () => {
   assert.equal(STATUS_EXCLUIDO_RECEITA, "Cancelado");
+});
+
+test("permite apenas o avanço do fluxo ou cancelamento antes do estado final", () => {
+  assert.equal(transicaoStatusPermitida("Pendente", "EmPreparo"), true);
+  assert.equal(transicaoStatusPermitida("Pendente", "Cancelado"), true);
+  assert.equal(transicaoStatusPermitida("EmPreparo", "SaiuParaEntrega"), true);
+  assert.equal(transicaoStatusPermitida("SaiuParaEntrega", "Entregue"), true);
+  assert.equal(transicaoStatusPermitida("EmPreparo", "Pendente"), false);
+  assert.equal(transicaoStatusPermitida("Entregue", "EmPreparo"), false);
+  assert.equal(transicaoStatusPermitida("Cancelado", "Pendente"), false);
 });
 
 test("calcula início e fim dos filtros no fuso de São Paulo", () => {

@@ -20,6 +20,17 @@ export type DadosCheckout = {
 
 export type DadosEntrega = DadosCheckout;
 
+export const ROTA_CHECKOUT = "/carrinho?checkout=1";
+
+export function obterRetornoCompra(search: string) {
+  const retorno = new URLSearchParams(search).get("retorno");
+  return retorno === ROTA_CHECKOUT ? retorno : null;
+}
+
+export function criarUrlAutenticacao(rota: "/login" | "/cadastro") {
+  return `${rota}?retorno=${encodeURIComponent(ROTA_CHECKOUT)}`;
+}
+
 export class DadosEntregaInvalidosError extends Error {}
 
 function lerTexto(

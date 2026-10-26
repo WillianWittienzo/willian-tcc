@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cadastrar } from "@/client/authClient";
+import { criarUrlAutenticacao, obterRetornoCompra } from "@/lib/checkout";
 
 export default function CadastroPage() {
   const [nome, setNome] = useState("");
@@ -28,7 +29,9 @@ export default function CadastroPage() {
     setEnviando(true);
     try {
       await cadastrar({ nome, email, telefone, senha });
-      router.push("/login");
+      router.replace(
+        obterRetornoCompra(window.location.search) ? criarUrlAutenticacao("/login") : "/login",
+      );
     } catch (error) {
       setErro(error instanceof Error ? error.message : "Erro ao cadastrar");
     } finally {
@@ -137,7 +140,17 @@ export default function CadastroPage() {
 
         <p className="mt-6 text-center text-sm text-gray-500">
           Já tem conta?{" "}
-          <Link href="/login" className="font-medium text-red-700">Faça login</Link>
+          <Link
+            href="/login"
+            onClick={(event) => {
+              if (!obterRetornoCompra(window.location.search)) return;
+              event.preventDefault();
+              router.push(criarUrlAutenticacao("/login"));
+            }}
+            className="font-medium text-red-700"
+          >
+            Faça login
+          </Link>
         </p>
       </div>
     </main>

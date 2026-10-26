@@ -75,6 +75,12 @@ export type PaginaPedidos = {
   anosDisponiveis: number[];
 };
 
+export type KanbanPedidos = {
+  pedidos: Pedido[];
+  total: number;
+  anosDisponiveis: number[];
+};
+
 export type FiltrosPedidos = FiltrosDataPedido & {
   status: StatusFiltroPedido;
   page: number;
@@ -100,6 +106,19 @@ export async function listarPedidos(filtros: FiltrosPedidos): Promise<PaginaPedi
   return response.json();
 }
 
+export async function listarPedidosKanban(filtros: FiltrosDataPedido): Promise<KanbanPedidos> {
+  const parametros = new URLSearchParams({ visualizacao: "kanban" });
+  if (filtros.dia !== null) parametros.set("dia", String(filtros.dia));
+  if (filtros.mes !== null) parametros.set("mes", String(filtros.mes));
+  if (filtros.ano !== null) parametros.set("ano", String(filtros.ano));
+  const response = await fetch(`/api/pedidos?${parametros}`);
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.erro ?? "Erro ao buscar pedidos");
+  }
+  return response.json();
+}
+
 export async function listarMeusPedidos(): Promise<Pedido[]> {
   const response = await fetch("/api/pedidos/meus");
 
@@ -109,6 +128,17 @@ export async function listarMeusPedidos(): Promise<Pedido[]> {
   }
 
   return response.json();
+}
+
+export async function cancelarMeuPedido(id: number): Promise<Pedido> {
+  const response = await fetch(`/api/pedidos/${id}/cancelamento`, {
+    method: "PATCH",
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(data?.erro ?? "Erro ao cancelar pedido");
+  }
+  return data;
 }
 
 export async function criarPedido(
