@@ -5,6 +5,7 @@ import { produtoRepository } from "@/server/repositories/produtoRepository";
 type TamanhoEntrada = { nome: (typeof TAMANHOS)[number]; preco: number };
 type ProdutoValidado = {
   nome: string;
+  disponivel: boolean;
   categoria: Categoria;
   description: string;
   image?: string;
@@ -30,6 +31,7 @@ function validarProduto(data: unknown, permitirImagemVazia = false): ProdutoVali
   }
 
   const nome = "nome" in data && typeof data.nome === "string" ? data.nome.trim() : "";
+  const disponivel = "disponivel" in data ? data.disponivel : true;
   const description = "description" in data && typeof data.description === "string" ? data.description.trim() : "";
   const image = "image" in data && typeof data.image === "string" ? data.image.trim() : "";
   const categoria = "categoria" in data ? data.categoria : null;
@@ -38,6 +40,9 @@ function validarProduto(data: unknown, permitirImagemVazia = false): ProdutoVali
 
   if (nome.length < 2 || nome.length > 80) {
     throw new ProdutoInvalidoError("O nome deve ter entre 2 e 80 caracteres");
+  }
+  if (typeof disponivel !== "boolean") {
+    throw new ProdutoInvalidoError("Disponibilidade inválida");
   }
   if (description.length < 5 || description.length > 500) {
     throw new ProdutoInvalidoError("A descrição deve ter entre 5 e 500 caracteres");
@@ -76,6 +81,7 @@ function validarProduto(data: unknown, permitirImagemVazia = false): ProdutoVali
 
   return {
     nome,
+    disponivel,
     description,
     categoria: categoria as Categoria,
     image: image || undefined,
@@ -93,6 +99,7 @@ function formatarProduto(produto: Awaited<ReturnType<typeof produtoRepository.cr
   return {
     id: produto.id,
     nome: produto.nome,
+    disponivel: produto.disponivel,
     categoria: produto.categoria,
     description: produto.description,
     image: produto.image,

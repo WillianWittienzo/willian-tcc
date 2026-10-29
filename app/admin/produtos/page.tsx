@@ -29,6 +29,7 @@ export default function AdminProdutos() {
   const [desconto, setDesconto] = useState("");
   const [imagemComErro, setImagemComErro] = useState(false);
   const [categoria, setCategoria] = useState<Categoria>("Tradicional");
+  const [disponivel, setDisponivel] = useState(true);
 
   useEffect(() => {
     listarProdutos().then(setProdutos).catch((error) => setErro(error instanceof Error ? error.message : "Erro ao carregar produtos"));
@@ -36,7 +37,7 @@ export default function AdminProdutos() {
 
   function limparFormulario() {
     setNome(""); setDescricao(""); setPrecoPequena(""); setPrecoMedia(""); setPrecoGrande(""); setPrecoGigante("");
-    setImage(""); setDesconto(""); setImagemComErro(false); setCategoria("Tradicional"); setProdutoEmEdicao(null); setErro("");
+    setImage(""); setDesconto(""); setImagemComErro(false); setCategoria("Tradicional"); setDisponivel(true); setProdutoEmEdicao(null); setErro("");
   }
 
   function fecharModal() { setModalAberto(false); limparFormulario(); }
@@ -46,6 +47,7 @@ export default function AdminProdutos() {
     setNome(produto.nome);
     setDescricao(produto.description);
     setCategoria(produto.categoria);
+    setDisponivel(produto.disponivel);
     setImage(produto.image);
     setImagemComErro(false);
     setDesconto(produto.descontoPercentual === null ? "" : String(produto.descontoPercentual));
@@ -69,6 +71,7 @@ export default function AdminProdutos() {
     setErro("");
     const dados = {
       nome,
+      disponivel,
       description: descricao,
       categoria,
       image,
@@ -112,6 +115,10 @@ export default function AdminProdutos() {
               <select value={categoria} onChange={(e) => setCategoria(e.target.value as Categoria)} className="w-full border p-2 rounded-md">
                 <option value="Tradicional">Tradicional</option><option value="Especial">Especial</option><option value="Doce">Doce</option>
               </select>
+              <label className="flex items-center justify-between gap-4 rounded-md border p-3 font-medium">
+                Disponível para novos pedidos
+                <input type="checkbox" checked={disponivel} onChange={(e) => setDisponivel(e.target.checked)} className="h-5 w-5 accent-red-700" />
+              </label>
               <input type="number" min="0.01" max="10000" step="0.01" placeholder="Preço Pequena" value={precoPequena} onChange={(e) => setPrecoPequena(e.target.value)} className="w-full border p-2 rounded-md" required />
               <input type="number" min="0.01" max="10000" step="0.01" placeholder="Preço Média" value={precoMedia} onChange={(e) => setPrecoMedia(e.target.value)} className="w-full border p-2 rounded-md" required />
               <input type="number" min="0.01" max="10000" step="0.01" placeholder="Preço Grande" value={precoGrande} onChange={(e) => setPrecoGrande(e.target.value)} className="w-full border p-2 rounded-md" required />
@@ -148,6 +155,7 @@ export default function AdminProdutos() {
               <Image src={produto.image} alt={produto.nome} fill unoptimized={produto.image.startsWith("http")} sizes="(max-width: 768px) 100vw, 33vw" className="object-cover" />
               <span className="absolute top-3 left-3 z-10 bg-red-800/90 rounded-lg px-3 py-1 text-[13px] text-white">{produto.categoria}</span>
               {produto.descontoPercentual !== null && <span className="absolute right-3 top-3 rounded-lg bg-amber-500 px-3 py-1 text-sm font-bold">-{produto.descontoPercentual}%</span>}
+              {!produto.disponivel && <span className="absolute inset-x-3 bottom-3 rounded-lg bg-gray-950/85 px-3 py-2 text-center text-sm font-bold text-white">Indisponível</span>}
             </div>
             <div className="p-4">
               <h3 className="text-xl font-semibold">{produto.nome}</h3>

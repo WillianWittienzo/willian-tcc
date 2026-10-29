@@ -9,7 +9,9 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useCart } from "@/app/context/CartContext";
 import { criarPedido, type Pedido } from "@/client/pedidoClient";
 import { CheckoutModal } from "@/components/carrinho/CheckoutModal";
+import { PixDemonstrativo } from "@/components/carrinho/PixDemonstrativo";
 import { criarUrlAutenticacao, type DadosCheckout } from "@/lib/checkout";
+import { consultarFuncionamento } from "@/client/funcionamentoClient";
 
 const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -43,14 +45,23 @@ export default function CarrinhoPage() {
     }
     if (!items.length) return;
 
-    const timer = window.setTimeout(() => {
+    const timer = window.setTimeout(async () => {
       retornoTratado.current = true;
-      setCheckoutAberto(true);
+      try {
+        const funcionamento = await consultarFuncionamento();
+        if (!funcionamento.aberto) {
+          setErroFluxo(`${funcionamento.mensagem} Seu carrinho foi preservado.`);
+          return;
+        }
+        setCheckoutAberto(true);
+      } catch {
+        setErroFluxo("Não foi possível confirmar se a pizzaria está aberta. Tente novamente.");
+      }
     }, 0);
     return () => window.clearTimeout(timer);
   }, [carregando, items.length, router, user]);
 
-  function abrirCheckout() {
+  async function abrirCheckout() {
     if (items.length === 0 || finalizando || carregando) return;
     setErroFluxo("");
     if (!user) {
@@ -61,7 +72,16 @@ export default function CarrinhoPage() {
       setErroFluxo("A conta administrativa não pode finalizar compras. Entre com uma conta de cliente.");
       return;
     }
-    setCheckoutAberto(true);
+    try {
+      const funcionamento = await consultarFuncionamento();
+      if (!funcionamento.aberto) {
+        setErroFluxo(`${funcionamento.mensagem} Seu carrinho foi preservado.`);
+        return;
+      }
+      setCheckoutAberto(true);
+    } catch {
+      setErroFluxo("Não foi possível confirmar se a pizzaria está aberta. Tente novamente.");
+    }
   }
 
   async function confirmarPedido(dadosCheckout: DadosCheckout) {
@@ -93,12 +113,18 @@ export default function CarrinhoPage() {
   return (
     <div className="max-w-6xl mx-auto p-6 mt-20 grid md:grid-cols-3 gap-8">
       <div className="md:col-span-2 space-y-4">
-        {items.length === 0 ? <p className="text-center text-gray-500">Seu carrinho está vazio 🍕</p> : items.map((item) => {
+        {items.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-amber-400 bg-amber-50 p-10 text-center">
+            <p className="text-2xl font-bold text-amber-950">Seu carrinho está vazio</p>
+            <p className="mt-2 text-amber-900">Escolha sua pizza favorita e ela aparecerá aqui.</p>
+            <Link href="/cardapio" className="mt-5 inline-block rounded-lg bg-red-700 px-5 py-3 font-semibold text-white hover:bg-red-800">Ver cardápio</Link>
+          </div>
+        ) : items.map((item) => {
           const chave = { id: item.id, tamanho: item.tamanho, borda: item.borda, observacao: item.observacao ?? "" };
           return (
             <div key={`${item.id}-${item.tamanho}-${item.borda}-${item.observacao ?? ""}`} className="bg-white p-4 rounded-xl shadow flex justify-between items-center gap-4">
               <div className="flex gap-4 items-center">
-                <Image src={item.image} alt={item.nome} width={80} height={80} className="rounded-lg object-cover" />
+                <Image src={item.image} alt={item.nome} width={80} height={80} className="h-20 w-20 rounded-lg object-cover" />
                 <div>
                   <h2 className="font-bold">{item.nome}</h2>
                   <p className="text-sm text-gray-500">Tamanho: {item.tamanho}</p>
@@ -140,7 +166,7 @@ export default function CarrinhoPage() {
         <div className="flex justify-between mb-2"><span>Subtotal</span><span>R$ {subtotal.toFixed(2)}</span></div>
         <p className="mb-4 text-sm text-gray-500">A taxa e o total serão exibidos após escolher Entrega ou Retirada.</p>
         {erroFluxo && <p role="alert" className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">{erroFluxo}</p>}
-        <button type="button" onClick={abrirCheckout} disabled={!items.length || finalizando || carregando} className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100">{carregando ? "Verificando sessão..." : "Finalizar Pedido"}</button>
+        <button type="button" onClick={() => void abrirCheckout()} disabled={!items.length || finalizando || carregando} className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition hover:scale-105 disabled:opacity-50 disabled:hover:scale-100">{carregando ? "Verificando sessão..." : "Finalizar Pedido"}</button>
         <Link href="/cardapio" className="block mt-6 w-full text-black py-2 bg-yellow-600 rounded-lg transition duration-300 hover:bg-yellow-500 hover:scale-105 text-center">Continuar comprando</Link>
       </div>
 
@@ -159,6 +185,15 @@ export default function CarrinhoPage() {
           <div className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
             <h2 id="titulo-confirmacao" className="text-2xl font-bold text-green-700">Pedido realizado com sucesso!</h2>
             <p className="mt-2 text-lg font-semibold">Pedido #{pedidoConfirmado.id}</p>
+            <p className="mt-1 text-sm text-gray-600">Recebemos seu pedido. Você pode acompanhar cada atualização em Minhas Pizzas.</p>
+
+            {pedidoConfirmado.recebimento?.formaPagamento === "Pix" && (
+              <PixDemonstrativo
+                pedidoId={pedidoConfirmado.id}
+                valor={pedidoConfirmado.valorTotal}
+                status={pedidoConfirmado.recebimento.status}
+              />
+            )}
 
             <div className="mt-5 divide-y rounded-lg bg-gray-50 px-4">
               {pedidoConfirmado.itens.map((item) => (
@@ -181,6 +216,12 @@ export default function CarrinhoPage() {
                 <dt>Valor final</dt>
                 <dd>{moeda.format(pedidoConfirmado.valorTotal)}</dd>
               </div>
+              {pedidoConfirmado.recebimento?.formaPagamento === "Dinheiro" && pedidoConfirmado.recebimento.precisaTroco && pedidoConfirmado.recebimento.valorParaTroco !== null && pedidoConfirmado.recebimento.valorTroco !== null && (
+                <div className="rounded-md bg-amber-50 p-3 text-sm">
+                  <dt>Troco para {moeda.format(pedidoConfirmado.recebimento.valorParaTroco)}</dt>
+                  <dd className="font-semibold">Troco calculado: {moeda.format(pedidoConfirmado.recebimento.valorTroco)}</dd>
+                </div>
+              )}
             </dl>
 
             <Link href={`/pedidos?pedido=${pedidoConfirmado.id}`} className="mt-6 block rounded-md bg-green-700 px-5 py-3 text-center font-semibold text-white hover:bg-green-800">

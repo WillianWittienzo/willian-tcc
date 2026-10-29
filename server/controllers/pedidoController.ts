@@ -65,6 +65,10 @@ export const pedidoController = {
         };
       }
 
+      if (error instanceof PedidoConflitoError) {
+        return { status: 409, data: { erro: error.message } };
+      }
+
       console.error("Erro ao criar pedido:", error);
 
       return {

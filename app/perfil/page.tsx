@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
+import { CampoSenha } from "@/components/auth/CampoSenha";
 import {
   alterarSenha,
   atualizarDadosPessoais,
   atualizarEndereco,
   buscarPerfil,
+  reenviarVerificacaoEmail,
   type PerfilCliente,
 } from "@/client/authClient";
+import { formatarCpf } from "@/lib/cpf";
 
 const enderecoVazio = {
   cep: "",
@@ -25,6 +28,7 @@ export default function PerfilPage() {
   const [erro, setErro] = useState("");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [cpf, setCpf] = useState("");
   const [salvandoDados, setSalvandoDados] = useState(false);
   const [mensagemDados, setMensagemDados] = useState("");
   const [erroDados, setErroDados] = useState(false);
@@ -38,6 +42,8 @@ export default function PerfilPage() {
   const [alterandoSenha, setAlterandoSenha] = useState(false);
   const [mensagemSenha, setMensagemSenha] = useState("");
   const [erroSenha, setErroSenha] = useState(false);
+  const [mensagemEmail, setMensagemEmail] = useState("");
+  const [reenviandoEmail, setReenviandoEmail] = useState(false);
   const { user, carregando } = useAuth();
   const router = useRouter();
 
@@ -57,6 +63,7 @@ export default function PerfilPage() {
         setPerfil(dados);
         setNome(dados.nome);
         setTelefone(dados.telefone ?? "");
+        setCpf(formatarCpf(dados.cpf ?? ""));
         setEndereco({
           cep: dados.cep ?? "",
           rua: dados.rua ?? "",
@@ -75,10 +82,11 @@ export default function PerfilPage() {
     setMensagemDados("");
     setErroDados(false);
     try {
-      const atualizado = await atualizarDadosPessoais({ nome, telefone });
+      const atualizado = await atualizarDadosPessoais({ nome, telefone, cpf });
       setPerfil(atualizado);
       setNome(atualizado.nome);
       setTelefone(atualizado.telefone ?? "");
+      setCpf(formatarCpf(atualizado.cpf ?? ""));
       setMensagemDados("Dados pessoais atualizados com sucesso.");
     } catch (error) {
       setErroDados(true);
@@ -136,6 +144,21 @@ export default function PerfilPage() {
     }
   }
 
+  async function reenviarEmail() {
+    setReenviandoEmail(true);
+    setMensagemEmail("");
+    try {
+      const resultado = await reenviarVerificacaoEmail();
+      setMensagemEmail(resultado.emailEnviado
+        ? "Novo link de verificação enviado."
+        : "Não foi possível enviar. Verifique se o SMTP está configurado ou se o e-mail já foi confirmado.");
+    } catch (error) {
+      setMensagemEmail(error instanceof Error ? error.message : "Não foi possível reenviar");
+    } finally {
+      setReenviandoEmail(false);
+    }
+  }
+
   if (carregando || (!perfil && !erro)) {
     return <main className="mx-auto min-h-screen max-w-4xl px-6 py-28"><p>Carregando perfil...</p></main>;
   }
@@ -159,9 +182,33 @@ export default function PerfilPage() {
               <label className="text-sm font-semibold">Telefone
                 <input value={telefone} onChange={(event) => setTelefone(event.target.value)} inputMode="tel" maxLength={25} required className="mt-1 w-full rounded-md border p-3 font-normal" />
               </label>
+              <label className="text-sm font-semibold sm:col-span-2">CPF
+                <input
+                  value={cpf}
+                  onChange={(event) => setCpf(formatarCpf(event.target.value))}
+                  inputMode="numeric"
+                  maxLength={14}
+                  placeholder="000.000.000-00"
+                  className="mt-1 w-full rounded-md border p-3 font-normal"
+                />
+                <small className="mt-1 block font-normal text-gray-500">
+                  Contas antigas podem cadastrar o CPF agora. A validação é exclusivamente matemática.
+                </small>
+              </label>
               <label className="text-sm font-semibold sm:col-span-2">E-mail
                 <input value={perfil.email} readOnly className="mt-1 w-full rounded-md border bg-gray-100 p-3 font-normal text-gray-600" />
               </label>
+              <div className="rounded-md bg-gray-50 p-3 text-sm sm:col-span-2">
+                <p className={perfil.emailVerificado ? "font-semibold text-green-700" : "font-semibold text-amber-800"}>
+                  {perfil.emailVerificado ? "E-mail verificado" : "E-mail ainda não verificado"}
+                </p>
+                {!perfil.emailVerificado && (
+                  <button type="button" onClick={() => void reenviarEmail()} disabled={reenviandoEmail} className="mt-2 font-semibold text-red-700 disabled:opacity-50">
+                    {reenviandoEmail ? "Enviando..." : "Reenviar confirmação"}
+                  </button>
+                )}
+                {mensagemEmail && <p className="mt-2 text-gray-700" role="status">{mensagemEmail}</p>}
+              </div>
               <button type="submit" disabled={salvandoDados} className="rounded-md bg-red-700 px-5 py-3 font-semibold text-white hover:bg-red-800 disabled:opacity-50 sm:w-fit">
                 {salvandoDados ? "Salvando..." : "Salvar dados"}
               </button>
@@ -204,15 +251,11 @@ export default function PerfilPage() {
             <p className="mt-2 text-gray-600">Altere sua senha de acesso com confirmação da senha atual.</p>
             <form onSubmit={salvarSenha} className="mt-4 grid gap-4 sm:grid-cols-2">
               {mensagemSenha && <p className={`rounded-md p-3 text-sm sm:col-span-2 ${erroSenha ? "bg-red-100 text-red-800" : "bg-green-50 text-green-800"}`} role={erroSenha ? "alert" : "status"}>{mensagemSenha}</p>}
-              <label className="text-sm font-semibold sm:col-span-2">Senha atual
-                <input type="password" value={senhaAtual} onChange={(event) => setSenhaAtual(event.target.value)} autoComplete="current-password" maxLength={128} required className="mt-1 w-full rounded-md border p-3 font-normal" />
-              </label>
-              <label className="text-sm font-semibold">Nova senha
-                <input type="password" value={novaSenha} onChange={(event) => setNovaSenha(event.target.value)} autoComplete="new-password" minLength={8} maxLength={128} required className="mt-1 w-full rounded-md border p-3 font-normal" />
-              </label>
-              <label className="text-sm font-semibold">Confirmar nova senha
-                <input type="password" value={confirmarNovaSenha} onChange={(event) => setConfirmarNovaSenha(event.target.value)} autoComplete="new-password" minLength={8} maxLength={128} required className="mt-1 w-full rounded-md border p-3 font-normal" />
-              </label>
+              <div className="sm:col-span-2">
+                <CampoSenha id="senhaAtual" label="Senha atual" value={senhaAtual} onChange={setSenhaAtual} autoComplete="current-password" />
+              </div>
+              <CampoSenha id="novaSenha" label="Nova senha" value={novaSenha} onChange={setNovaSenha} autoComplete="new-password" mostrarOrientacao />
+              <CampoSenha id="confirmarNovaSenha" label="Confirmar nova senha" value={confirmarNovaSenha} onChange={setConfirmarNovaSenha} autoComplete="new-password" />
               <button type="submit" disabled={alterandoSenha} className="rounded-md bg-red-700 px-5 py-3 font-semibold text-white hover:bg-red-800 disabled:opacity-50 sm:w-fit">
                 {alterandoSenha ? "Alterando..." : "Alterar senha"}
               </button>

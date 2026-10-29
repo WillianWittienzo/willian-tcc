@@ -5,12 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { cadastrar } from "@/client/authClient";
+import { CampoSenha } from "@/components/auth/CampoSenha";
 import { criarUrlAutenticacao, obterRetornoCompra } from "@/lib/checkout";
+import { formatarCpf } from "@/lib/cpf";
 
 export default function CadastroPage() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmacaoSenha, setConfirmacaoSenha] = useState("");
   const [erro, setErro] = useState("");
@@ -28,10 +31,9 @@ export default function CadastroPage() {
 
     setEnviando(true);
     try {
-      await cadastrar({ nome, email, telefone, senha });
-      router.replace(
-        obterRetornoCompra(window.location.search) ? criarUrlAutenticacao("/login") : "/login",
-      );
+      const resultado = await cadastrar({ nome, email, telefone, cpf, senha });
+      const destino = obterRetornoCompra(window.location.search) ? criarUrlAutenticacao("/login") : "/login";
+      router.replace(`${destino}${destino.includes("?") ? "&" : "?"}cadastro=${resultado.emailEnviado ? "enviado" : "sem-smtp"}`);
     } catch (error) {
       setErro(error instanceof Error ? error.message : "Erro ao cadastrar");
     } finally {
@@ -100,34 +102,25 @@ export default function CadastroPage() {
           </div>
 
           <div>
-            <label htmlFor="senha" className="mb-1 block text-sm">Senha</label>
+            <label htmlFor="cpf" className="mb-1 block text-sm">CPF</label>
             <input
-              id="senha"
-              type="password"
-              value={senha}
-              onChange={(event) => setSenha(event.target.value)}
+              id="cpf"
+              type="text"
+              value={cpf}
+              onChange={(event) => setCpf(formatarCpf(event.target.value))}
               className="w-full rounded-md border p-3"
-              autoComplete="new-password"
-              minLength={8}
-              maxLength={128}
+              placeholder="000.000.000-00"
+              autoComplete="off"
+              inputMode="numeric"
+              maxLength={14}
               required
             />
+            <p className="mt-1 text-xs text-gray-500">Validação matemática; não confirma titularidade ou existência do documento.</p>
           </div>
 
-          <div>
-            <label htmlFor="confirmacaoSenha" className="mb-1 block text-sm">Confirme a senha</label>
-            <input
-              id="confirmacaoSenha"
-              type="password"
-              value={confirmacaoSenha}
-              onChange={(event) => setConfirmacaoSenha(event.target.value)}
-              className="w-full rounded-md border p-3"
-              autoComplete="new-password"
-              minLength={8}
-              maxLength={128}
-              required
-            />
-          </div>
+          <CampoSenha id="senha" label="Senha" value={senha} onChange={setSenha} autoComplete="new-password" mostrarOrientacao />
+
+          <CampoSenha id="confirmacaoSenha" label="Confirme a senha" value={confirmacaoSenha} onChange={setConfirmacaoSenha} autoComplete="new-password" />
 
           <button
             type="submit"

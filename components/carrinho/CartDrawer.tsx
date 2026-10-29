@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Minus, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -104,8 +105,9 @@ export function CartDrawer() {
           <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
             {!items.length ? (
               <div className="flex h-full min-h-52 flex-col items-center justify-center text-center text-gray-500">
-                <p className="text-lg font-semibold">Seu carrinho está vazio.</p>
+                <p className="text-xl font-bold text-gray-800">Seu carrinho está vazio</p>
                 <p className="mt-1 text-sm">Escolha uma pizza para começar.</p>
+                <Link href="/cardapio" onClick={fecharCarrinho} className="mt-4 rounded-lg bg-red-700 px-5 py-3 font-semibold text-white hover:bg-red-800">Ver cardápio</Link>
               </div>
             ) : items.map((item) => {
               const chave = { id: item.id, tamanho: item.tamanho, borda: item.borda, observacao: item.observacao };
@@ -211,6 +213,7 @@ export function CartDrawer() {
           produto={{
             id: itemEditando.id,
             nome: itemEditando.nome,
+            disponivel: true,
             categoria: itemEditando.categoria,
             description: itemEditando.description,
             image: itemEditando.image,

@@ -4,6 +4,7 @@ import { itensTemMesmaConfiguracao } from "../lib/carrinho";
 import { aplicarDesconto, buscarBorda, TAMANHOS } from "../lib/catalogo";
 import {
   DadosEntregaInvalidosError,
+  calcularTrocoEmCentavos,
   FORMAS_PAGAMENTO,
   ROTA_CHECKOUT,
   criarUrlAutenticacao,
@@ -22,7 +23,10 @@ import {
   calcularTotalPaginas,
   normalizarFiltrosData,
   normalizarFiltrosPedidos,
+  obterDataAtualNoFuso,
   obterIntervaloData,
+  minutosAguardandoPedido,
+  pedidoPendenteAntigo,
   transicaoStatusPermitida,
 } from "../lib/filtrosPedido";
 import { registrarTentativaPedido, verificarLimitePedido } from "../server/auth/limitePedido";
@@ -30,6 +34,38 @@ import {
   registrarTentativaAcompanhamento,
   verificarLimiteAcompanhamento,
 } from "../server/auth/limiteAcompanhamento";
+import { avaliarFuncionamento, type ConfiguracaoFuncionamento } from "../lib/funcionamento";
+
+const funcionamentoPadrao: ConfiguracaoFuncionamento = {
+  fechamentoManual: false,
+  horarios: Array.from({ length: 7 }, (_, diaSemana) => ({
+    diaSemana,
+    fechado: false,
+    abertura: "18:00",
+    fechamento: "23:00",
+  })),
+};
+
+test("avalia o funcionamento no fuso de São Paulo", () => {
+  assert.equal(avaliarFuncionamento(funcionamentoPadrao, new Date("2026-10-27T22:00:00.000Z")).aberto, true);
+  assert.equal(avaliarFuncionamento(funcionamentoPadrao, new Date("2026-10-27T16:00:00.000Z")).aberto, false);
+});
+
+test("respeita dia fechado, fechamento manual e horário que passa da meia-noite", () => {
+  const tercaFechada = {
+    ...funcionamentoPadrao,
+    horarios: funcionamentoPadrao.horarios.map((horario) => horario.diaSemana === 2 ? { ...horario, fechado: true } : horario),
+  };
+  assert.equal(avaliarFuncionamento(tercaFechada, new Date("2026-10-27T22:00:00.000Z")).aberto, false);
+  assert.equal(avaliarFuncionamento({ ...funcionamentoPadrao, fechamentoManual: true }, new Date("2026-10-27T22:00:00.000Z")).aberto, false);
+
+  const noturno = {
+    ...funcionamentoPadrao,
+    horarios: funcionamentoPadrao.horarios.map((horario) => ({ ...horario, abertura: "18:00", fechamento: "02:00" })),
+  };
+  assert.equal(avaliarFuncionamento(noturno, new Date("2026-10-28T04:00:00.000Z")).aberto, true);
+  assert.equal(avaliarFuncionamento(noturno, new Date("2026-10-28T06:00:00.000Z")).aberto, false);
+});
 
 test("cobra entrega para subtotal de R$ 79,99", () => {
   assert.equal(calcularTaxaEntregaEmCentavos(7999), 800);
@@ -51,7 +87,7 @@ test("catálogo reconhece Gigante sem atribuir preço", () => {
 });
 
 test("formas de pagamento são uma lista fechada", () => {
-  assert.deepEqual(FORMAS_PAGAMENTO, ["Dinheiro", "Cartão", "Pix", "Boleto"]);
+  assert.deepEqual(FORMAS_PAGAMENTO, ["Dinheiro", "Cartão", "Pix"]);
   for (const formaPagamento of FORMAS_PAGAMENTO) {
     assert.equal(normalizarDadosEntrega({
       nomeCliente: "Maria da Silva",
@@ -60,6 +96,12 @@ test("formas de pagamento são uma lista fechada", () => {
       formaPagamento,
     }).formaPagamento, formaPagamento);
   }
+  assert.throws(() => normalizarDadosEntrega({
+    nomeCliente: "Maria da Silva",
+    telefone: "11999999999",
+    metodoEntrega: "Retirada",
+    formaPagamento: "Boleto",
+  }), DadosEntregaInvalidosError);
 });
 
 test("preserva somente o retorno conhecido do checkout na autenticação", () => {
@@ -168,14 +210,28 @@ test("mantém pedidos cancelados fora da receita do dashboard", () => {
   assert.equal(STATUS_EXCLUIDO_RECEITA, "Cancelado");
 });
 
-test("permite apenas o avanço do fluxo ou cancelamento antes do estado final", () => {
+test("permite as transições administrativas do Kanban", () => {
   assert.equal(transicaoStatusPermitida("Pendente", "EmPreparo"), true);
+  assert.equal(transicaoStatusPermitida("Pendente", "SaiuParaEntrega"), true);
+  assert.equal(transicaoStatusPermitida("Pendente", "Entregue"), true);
   assert.equal(transicaoStatusPermitida("Pendente", "Cancelado"), true);
   assert.equal(transicaoStatusPermitida("EmPreparo", "SaiuParaEntrega"), true);
+  assert.equal(transicaoStatusPermitida("EmPreparo", "Entregue"), true);
+  assert.equal(transicaoStatusPermitida("EmPreparo", "Cancelado"), true);
   assert.equal(transicaoStatusPermitida("SaiuParaEntrega", "Entregue"), true);
+  assert.equal(transicaoStatusPermitida("SaiuParaEntrega", "Cancelado"), true);
   assert.equal(transicaoStatusPermitida("EmPreparo", "Pendente"), false);
   assert.equal(transicaoStatusPermitida("Entregue", "EmPreparo"), false);
+  assert.equal(transicaoStatusPermitida("Entregue", "Cancelado"), false);
   assert.equal(transicaoStatusPermitida("Cancelado", "Pendente"), false);
+});
+
+test("destaca somente pedidos pendentes aguardando há pelo menos 30 minutos", () => {
+  const agora = new Date("2026-10-27T15:00:00.000Z");
+  assert.equal(minutosAguardandoPedido("2026-10-27T14:15:00.000Z", agora), 45);
+  assert.equal(pedidoPendenteAntigo("Pendente", "2026-10-27T14:30:00.000Z", agora), true);
+  assert.equal(pedidoPendenteAntigo("Pendente", "2026-10-27T14:31:00.000Z", agora), false);
+  assert.equal(pedidoPendenteAntigo("EmPreparo", "2026-10-27T14:00:00.000Z", agora), false);
 });
 
 test("calcula início e fim dos filtros no fuso de São Paulo", () => {
@@ -192,6 +248,19 @@ test("calcula início e fim dos filtros no fuso de São Paulo", () => {
     lt: new Date("2027-01-01T03:00:00.000Z"),
   });
   assert.equal(obterIntervaloData({ dia: null, mes: null, ano: null }), undefined);
+});
+
+test("inicia os filtros com a data atual de São Paulo inclusive na virada do dia", () => {
+  assert.deepEqual(obterDataAtualNoFuso(new Date("2026-10-28T02:59:59.000Z")), {
+    dia: 27,
+    mes: 10,
+    ano: 2026,
+  });
+  assert.deepEqual(obterDataAtualNoFuso(new Date("2026-10-28T03:00:00.000Z")), {
+    dia: 28,
+    mes: 10,
+    ano: 2026,
+  });
 });
 
 test("lista anos disponíveis do mais recente ao mais antigo", () => {
@@ -213,6 +282,8 @@ test("normaliza dados válidos do checkout", () => {
     referencia: " Próximo   à praça ",
     metodoEntrega: "Entrega",
     formaPagamento: "Pix",
+    precisaTroco: false,
+    valorParaTroco: null,
   }), {
     nomeCliente: "Maria da Silva",
     telefone: "11999999999",
@@ -224,6 +295,8 @@ test("normaliza dados válidos do checkout", () => {
     referencia: "Próximo à praça",
     metodoEntrega: "Entrega",
     formaPagamento: "Pix",
+    precisaTroco: false,
+    valorParaTroco: null,
   });
 });
 
@@ -233,11 +306,15 @@ test("retirada exige apenas dados pessoais, método e pagamento", () => {
     telefone: "(11) 99999-9999",
     metodoEntrega: "Retirada",
     formaPagamento: "Cartão",
+    precisaTroco: false,
+    valorParaTroco: null,
   }), {
     nomeCliente: "Maria da Silva",
     telefone: "11999999999",
     metodoEntrega: "Retirada",
     formaPagamento: "Cartão",
+    precisaTroco: false,
+    valorParaTroco: null,
     cep: null,
     rua: null,
     numero: null,
@@ -278,6 +355,52 @@ test("rejeita campos obrigatórios e formatos inválidos do checkout", () => {
     mes: 2,
     ano: 2024,
   });
+});
+
+test("normaliza a informação de troco somente para pagamento em dinheiro", () => {
+  const base = {
+    nomeCliente: "Maria da Silva",
+    telefone: "11999999999",
+    metodoEntrega: "Retirada",
+  };
+  assert.deepEqual(normalizarDadosEntrega({
+    ...base,
+    formaPagamento: "Dinheiro",
+    precisaTroco: true,
+    valorParaTroco: 100,
+  }), {
+    ...base,
+    formaPagamento: "Dinheiro",
+    precisaTroco: true,
+    valorParaTroco: 100,
+    cep: null,
+    rua: null,
+    numero: null,
+    bairro: null,
+    complemento: null,
+    referencia: null,
+  });
+  assert.throws(() => normalizarDadosEntrega({
+    ...base,
+    formaPagamento: "Dinheiro",
+    precisaTroco: true,
+    valorParaTroco: 0,
+  }), DadosEntregaInvalidosError);
+  assert.equal(normalizarDadosEntrega({
+    ...base,
+    formaPagamento: "Pix",
+    precisaTroco: true,
+    valorParaTroco: 100,
+  }).valorParaTroco, null);
+});
+
+test("calcula o troco sobre o total definitivo em centavos", () => {
+  assert.deepEqual(calcularTrocoEmCentavos(100, 8790), {
+    valorParaTrocoEmCentavos: 10000,
+    valorTrocoEmCentavos: 1210,
+  });
+  assert.throws(() => calcularTrocoEmCentavos(87.9, 8790), DadosEntregaInvalidosError);
+  assert.throws(() => calcularTrocoEmCentavos(80, 8790), DadosEntregaInvalidosError);
 });
 
 test("normaliza telefone nacional e com DDI", () => {

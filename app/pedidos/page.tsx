@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import { useCart } from "@/app/context/CartContext";
@@ -73,7 +74,8 @@ export default function MeusPedidosPage() {
       router.replace("/admin");
       return;
     }
-    void carregarPedidos();
+    const timer = window.setTimeout(() => void carregarPedidos(), 0);
+    return () => window.clearTimeout(timer);
   }, [carregandoSessao, carregarPedidos, router, user]);
 
   useEffect(() => {
@@ -134,7 +136,7 @@ export default function MeusPedidosPage() {
         );
         const borda = buscarBorda(item.borda ?? "Sem borda");
 
-        if (!produto || !tamanho || !borda) {
+        if (!produto || !produto.disponivel || !tamanho || !borda) {
           indisponiveis.push(`${item.nomeProduto} (${item.tamanho}${item.borda ? `, borda ${item.borda}` : ""})`);
           return [];
         }
@@ -200,11 +202,15 @@ export default function MeusPedidosPage() {
         </div>
       ) : erro ? (
         <div className="rounded-xl bg-white p-6 text-center text-red-700 shadow" role="alert">
-          {erro}
+          <p className="font-bold">Não foi possível carregar seus pedidos</p>
+          <p className="mt-1 text-sm">{erro}</p>
+          <button type="button" onClick={() => void carregarPedidos()} className="mt-4 rounded-md bg-red-700 px-4 py-2 font-semibold text-white">Tentar novamente</button>
         </div>
       ) : pedidosDoCliente.length === 0 ? (
-        <div className="rounded-xl bg-white p-6 text-center shadow">
-          <p className="text-gray-600">Você ainda não possui pedidos.</p>
+        <div className="rounded-xl border border-dashed border-amber-400 bg-amber-50 p-10 text-center shadow-sm">
+          <p className="text-2xl font-bold text-amber-950">Sua lista de pizzas ainda está vazia</p>
+          <p className="mt-2 text-amber-900">Quando você fizer um pedido, o acompanhamento aparecerá aqui.</p>
+          <Link href="/cardapio" className="mt-5 inline-block rounded-lg bg-red-700 px-5 py-3 font-semibold text-white hover:bg-red-800">Escolher uma pizza</Link>
         </div>
       ) : (
         <div className="space-y-6">

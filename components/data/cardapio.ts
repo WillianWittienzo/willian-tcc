@@ -11,6 +11,7 @@ export type Tamanho = {
 export type Card = {
   id: number;
   nome: string;
+  disponivel: boolean;
   categoria: Categoria;
   description: string;
   image: string;

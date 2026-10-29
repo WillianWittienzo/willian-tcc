@@ -1,16 +1,20 @@
 import { prisma } from "@/lib/prisma";
-import { PapelUsuario } from "@/app/generated/prisma/client";
+import { PapelUsuario, TipoTokenConta } from "@/app/generated/prisma/client";
 
 export const authRepository = {
   buscarPorEmail(email: string) {
     return prisma.usuario.findUnique({ where: { email } });
   },
 
+  buscarPorCpf(cpf: string) {
+    return prisma.usuario.findUnique({ where: { cpf } });
+  },
+
   buscarPorId(id: number) {
     return prisma.usuario.findUnique({ where: { id } });
   },
 
-  atualizarDadosPessoais(id: number, data: { nome: string; telefone: string }) {
+  atualizarDadosPessoais(id: number, data: { nome: string; telefone: string; cpf: string | null }) {
     return prisma.usuario.update({ where: { id }, data });
   },
 
@@ -38,7 +42,7 @@ export const authRepository = {
     ]);
   },
 
-  criarCliente(data: { nome: string; email: string; telefone: string; senhaHash: string }) {
+  criarCliente(data: { nome: string; email: string; telefone: string; cpf: string; senhaHash: string }) {
     return prisma.usuario.create({
       data: { ...data, papel: PapelUsuario.Cliente },
     });
@@ -63,5 +67,54 @@ export const authRepository = {
 
   excluirSessao(tokenHash: string) {
     return prisma.sessao.deleteMany({ where: { tokenHash } });
+  },
+
+  async criarTokenConta(data: {
+    usuarioId: number;
+    tipo: TipoTokenConta;
+    tokenHash: string;
+    expiraEm: Date;
+  }) {
+    return prisma.$transaction(async (transacao) => {
+      await transacao.tokenConta.deleteMany({
+        where: { usuarioId: data.usuarioId, tipo: data.tipo, usadoEm: null },
+      });
+      return transacao.tokenConta.create({ data });
+    });
+  },
+
+  buscarTokenConta(tokenHash: string, tipo: TipoTokenConta) {
+    return prisma.tokenConta.findFirst({
+      where: { tokenHash, tipo },
+      include: { usuario: true },
+    });
+  },
+
+  confirmarEmailComToken(tokenId: number, usuarioId: number, agora: Date) {
+    return prisma.$transaction(async (transacao) => {
+      const consumido = await transacao.tokenConta.updateMany({
+        where: { id: tokenId, usuarioId, usadoEm: null, expiraEm: { gt: agora } },
+        data: { usadoEm: agora },
+      });
+      if (consumido.count !== 1) return false;
+      await transacao.usuario.update({
+        where: { id: usuarioId },
+        data: { emailVerificadoEm: agora },
+      });
+      return true;
+    });
+  },
+
+  redefinirSenhaComToken(tokenId: number, usuarioId: number, senhaHash: string, agora: Date) {
+    return prisma.$transaction(async (transacao) => {
+      const consumido = await transacao.tokenConta.updateMany({
+        where: { id: tokenId, usuarioId, usadoEm: null, expiraEm: { gt: agora } },
+        data: { usadoEm: agora },
+      });
+      if (consumido.count !== 1) return false;
+      await transacao.usuario.update({ where: { id: usuarioId }, data: { senhaHash } });
+      await transacao.sessao.deleteMany({ where: { usuarioId } });
+      return true;
+    });
   },
 };

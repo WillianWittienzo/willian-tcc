@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { Card } from "../data/cardapio";
 
 
-export function CardItemHome({ nome, categoria, tamanhos, image, description, descontoPercentual }: Card) {
+export function CardItemHome({ nome, categoria, tamanhos, image, description, descontoPercentual, disponivel }: Card) {
   const menorTamanho = tamanhos[0];
   return (
     <div className="rounded-xl bg-white p-4 shadow relative hover:-translate-y-1 transition-all duration-200
@@ -16,6 +16,7 @@ export function CardItemHome({ nome, categoria, tamanhos, image, description, de
         </p>
       </div>
       {descontoPercentual !== null && <span className="absolute right-5 top-5 rounded-lg bg-amber-500 px-3 py-1 text-sm font-bold">-{descontoPercentual}%</span>}
+      {!disponivel && <span className="absolute inset-x-5 top-56 rounded-lg bg-gray-950/90 px-3 py-2 text-center text-sm font-bold text-white">Indisponível no momento</span>}
       <h3 className="mt-2 text-lg font-bold">{nome}</h3>
 
       <p className="mt-2 text-black">{description}</p>

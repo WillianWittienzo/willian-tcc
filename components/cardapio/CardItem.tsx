@@ -22,9 +22,9 @@ export function CardItem(produto: Card) {
         <button
           type="button"
           onClick={() => setAberto(true)}
-          disabled={!menorTamanho}
+          disabled={!menorTamanho || !produto.disponivel}
           className="block h-full w-full p-4 text-left disabled:cursor-not-allowed"
-          aria-label={`Comprar pizza ${produto.nome}`}
+          aria-label={produto.disponivel ? `Comprar pizza ${produto.nome}` : `Pizza ${produto.nome} indisponível`}
         >
           <div className="relative h-52 w-full">
             <Image
@@ -44,6 +44,11 @@ export function CardItem(produto: Card) {
               -{produto.descontoPercentual}%
             </span>
           )}
+          {!produto.disponivel && (
+            <span className="absolute inset-x-5 top-44 rounded-lg bg-gray-950/90 px-3 py-2 text-center text-sm font-bold text-white">
+              Indisponível no momento
+            </span>
+          )}
 
           <h2 className="mt-3 text-lg font-bold">{produto.nome}</h2>
           <p className="mt-2 line-clamp-2 text-black">{produto.description}</p>
@@ -56,8 +61,8 @@ export function CardItem(produto: Card) {
                   : "Indisponível"}
               </span>
             </div>
-            <span className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white">
-              Comprar
+            <span className={`rounded-lg px-4 py-2 font-semibold text-white ${produto.disponivel ? "bg-red-600" : "bg-gray-500"}`}>
+              {produto.disponivel ? "Comprar" : "Indisponível"}
             </span>
           </div>
         </button>

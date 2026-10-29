@@ -60,6 +60,7 @@ export function PizzaCustomizationModal({
   const total = (precoPizza + bordaSelecionada.preco) * quantidade;
 
   function adicionar() {
+    if (!produto.disponivel) return;
     const item = {
       id: produto.id,
       nome: produto.nome,
@@ -232,9 +233,10 @@ export function PizzaCustomizationModal({
                 <button
                   type="button"
                   onClick={adicionar}
-                  className="rounded-lg bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700"
+                  disabled={!produto.disponivel}
+                  className="rounded-lg bg-red-600 px-5 py-3 font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-500"
                 >
-                  {onConfirmar ? "Salvar alterações" : "Adicionar ao carrinho"}
+                  {!produto.disponivel ? "Pizza indisponível" : onConfirmar ? "Salvar alterações" : "Adicionar ao carrinho"}
                 </button>
               </div>
               <p className="mt-2 text-xs text-gray-500">O preço definitivo será validado no servidor no checkout.</p>

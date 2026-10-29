@@ -9,6 +9,7 @@ import {
 import { aplicarDesconto, buscarBorda, TAMANHOS, type NomeBorda } from "@/lib/catalogo";
 import {
   DadosEntregaInvalidosError,
+  calcularTrocoEmCentavos,
   normalizarDadosCheckout,
   normalizarTelefone,
 } from "@/lib/checkout";
@@ -22,6 +23,7 @@ import {
   transicaoStatusPermitida,
 } from "@/lib/filtrosPedido";
 import { pedidoRepository } from "@/server/repositories/pedidoRepository";
+import { funcionamentoService } from "@/server/services/funcionamentoService";
 
 type TamanhoPedido = (typeof TAMANHOS)[number];
 type ItemRecebido = { produtoId: number; tamanho: TamanhoPedido; borda: NomeBorda; observacao: string | null; quantidade: number };
@@ -29,6 +31,8 @@ type ItemRecebido = { produtoId: number; tamanho: TamanhoPedido; borda: NomeBord
 export class PedidoInvalidoError extends Error {}
 export class PedidoNaoEncontradoError extends Error {}
 export class PedidoConflitoError extends Error {}
+
+const MENSAGEM_PIZZARIA_FECHADA = "A pizzaria está fechada no momento. Você pode continuar escolhendo suas pizzas, mas não é possível finalizar o pedido agora.";
 
 type PedidoPersistido = NonNullable<Awaited<ReturnType<typeof pedidoRepository.buscarPublico>>>;
 
@@ -57,6 +61,9 @@ function formatarPedido(pedido: PedidoPersistido) {
       id: pedido.recebimento.id,
       valor: Number(pedido.recebimento.valor),
       formaPagamento: formatarFormaPagamento(pedido.recebimento.formaPagamento),
+      precisaTroco: pedido.recebimento.precisaTroco,
+      valorParaTroco: pedido.recebimento.valorParaTroco === null ? null : Number(pedido.recebimento.valorParaTroco),
+      valorTroco: pedido.recebimento.valorTroco === null ? null : Number(pedido.recebimento.valorTroco),
       status: pedido.recebimento.status,
       criadoEm: pedido.recebimento.criadoEm,
       atualizadoEm: pedido.recebimento.atualizadoEm,
@@ -88,6 +95,9 @@ function formatarPedidoPublico(pedido: PedidoPersistido) {
       valor: formatado.recebimento.valor,
       formaPagamento: formatado.recebimento.formaPagamento,
       status: formatado.recebimento.status,
+      precisaTroco: formatado.recebimento.precisaTroco,
+      valorParaTroco: formatado.recebimento.valorParaTroco,
+      valorTroco: formatado.recebimento.valorTroco,
     },
     itens: formatado.itens,
   };
@@ -205,6 +215,7 @@ export const pedidoService = {
     const itens = itensRecebidos.map((item) => {
       const produto = produtosPorId.get(item.produtoId);
       if (!produto) throw new PedidoInvalidoError(`Produto ${item.produtoId} não encontrado`);
+      if (!produto.disponivel) throw new PedidoConflitoError(`${produto.nome} está indisponível no momento`);
       const tamanho = converterTamanho(item.tamanho);
       const produtoTamanho = produto.tamanhos.find((opcao) => opcao.nome === tamanho);
       if (!produtoTamanho) throw new PedidoInvalidoError(`Tamanho ${item.tamanho} indisponível para ${produto.nome}`);
@@ -228,7 +239,25 @@ export const pedidoService = {
     });
 
     const taxaEntregaEmCentavos = calcularTaxaEntregaEmCentavos(subtotalEmCentavos, checkout.metodoEntrega);
-    const valorTotal = (subtotalEmCentavos + taxaEntregaEmCentavos) / 100;
+    const valorTotalEmCentavos = subtotalEmCentavos + taxaEntregaEmCentavos;
+    const valorTotal = valorTotalEmCentavos / 100;
+    let valorParaTrocoEmCentavos: number | null = null;
+    let valorTrocoEmCentavos: number | null = null;
+    if (checkout.precisaTroco && checkout.valorParaTroco !== null) {
+      try {
+        const troco = calcularTrocoEmCentavos(checkout.valorParaTroco, valorTotalEmCentavos);
+        valorParaTrocoEmCentavos = troco.valorParaTrocoEmCentavos;
+        valorTrocoEmCentavos = troco.valorTrocoEmCentavos;
+      } catch (error) {
+        if (error instanceof DadosEntregaInvalidosError) throw new PedidoInvalidoError(error.message);
+        throw error;
+      }
+    }
+    const funcionamento = await funcionamentoService.consultar();
+    if (!funcionamento.aberto) {
+      throw new PedidoConflitoError(MENSAGEM_PIZZARIA_FECHADA);
+    }
+
     return formatarPedido(await pedidoRepository.criar({
       clienteId,
       nomeCliente: checkout.nomeCliente,
@@ -241,6 +270,9 @@ export const pedidoService = {
       referencia: checkout.referencia,
       metodoEntrega: MetodoEntrega[checkout.metodoEntrega],
       formaPagamento: converterFormaPagamento(checkout.formaPagamento),
+      precisaTroco: checkout.formaPagamento === "Dinheiro" ? checkout.precisaTroco : null,
+      valorParaTroco: valorParaTrocoEmCentavos === null ? null : valorParaTrocoEmCentavos / 100,
+      valorTroco: valorTrocoEmCentavos === null ? null : valorTrocoEmCentavos / 100,
       taxaEntrega: taxaEntregaEmCentavos / 100,
       valorTotal,
       itens,

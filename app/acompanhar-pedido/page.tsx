@@ -16,7 +16,10 @@ export default function AcompanharPedidoPage() {
 
   useEffect(() => {
     const numero = new URLSearchParams(window.location.search).get("pedido");
-    if (numero && /^\d{1,10}$/.test(numero)) setPedidoId(numero);
+    const timer = window.setTimeout(() => {
+      if (numero && /^\d{1,10}$/.test(numero)) setPedidoId(numero);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   async function consultar(event: FormEvent) {

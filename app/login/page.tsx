@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useAuth } from "../context/AuthContext"
 import { useRouter } from "next/navigation"
 import { criarUrlAutenticacao, obterRetornoCompra } from "@/lib/checkout"
+import { CampoSenha } from "@/components/auth/CampoSenha"
 
 export default function LoginPage() {
 
@@ -17,6 +18,16 @@ export default function LoginPage() {
 
     const [erro, setErro] = useState("")
     const [enviando, setEnviando] = useState(false)
+    const [aviso, setAviso] = useState("")
+
+    useEffect(() => {
+        const cadastro = new URLSearchParams(window.location.search).get("cadastro")
+        const timer = window.setTimeout(() => {
+            if (cadastro === "enviado") setAviso("Conta criada. Confira seu e-mail para concluir a verificação.")
+            if (cadastro === "sem-smtp") setAviso("Conta criada. O SMTP não está configurado, então o e-mail de verificação não foi enviado.")
+        }, 0)
+        return () => window.clearTimeout(timer)
+    }, [])
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault()
@@ -61,6 +72,7 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
 
+                    {aviso && <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-900" role="status">{aviso}</p>}
                     {erro && <p className="text-red-700 text-sm">{erro}</p>}
 
                     <div>
@@ -77,19 +89,9 @@ export default function LoginPage() {
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm mb-1">Senha</label>
-                        <input
-                            type="password"
-                            placeholder="********"
-                            value={senha}
-                            onChange={(e) => setSenha(e.target.value)}
-                            className="w-full border rounded-md p-3"
-                            autoComplete="current-password"
-                            maxLength={128}
-                            required
-                        />
-                    </div>
+                    <CampoSenha id="senhaLogin" label="Senha" value={senha} onChange={setSenha} autoComplete="current-password" />
+
+                    <Link href="/esqueci-senha" className="block text-right text-sm font-semibold text-red-700">Esqueceu sua senha?</Link>
 
                     <button
                         type="submit"

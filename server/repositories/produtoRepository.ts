@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 type ProdutoData = {
   nome: string;
+  disponivel: boolean;
   categoria: Categoria;
   description: string;
   image: string;
@@ -23,6 +24,7 @@ export const produtoRepository = {
     return prisma.produto.create({
       data: {
         nome: data.nome,
+        disponivel: data.disponivel,
         categoria: data.categoria,
         description: data.description,
         image: data.image,
@@ -37,6 +39,7 @@ export const produtoRepository = {
       where: { id },
       data: {
         nome: data.nome,
+        disponivel: data.disponivel,
         categoria: data.categoria,
         description: data.description,
         image: data.image,

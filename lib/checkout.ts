@@ -1,15 +1,18 @@
 import type { MetodoEntrega } from "@/lib/pedido";
 
 export const METODOS_ENTREGA = ["Entrega", "Retirada"] as const;
-export const FORMAS_PAGAMENTO = ["Dinheiro", "Cartão", "Pix", "Boleto"] as const;
+export const FORMAS_PAGAMENTO = ["Dinheiro", "Cartão", "Pix"] as const;
 
 export type FormaPagamento = (typeof FORMAS_PAGAMENTO)[number];
+export type FormaPagamentoHistorica = FormaPagamento | "Boleto";
 
 export type DadosCheckout = {
   nomeCliente: string;
   telefone: string;
   metodoEntrega: MetodoEntrega;
   formaPagamento: FormaPagamento;
+  precisaTroco: boolean;
+  valorParaTroco: number | null;
   cep: string | null;
   rua: string | null;
   numero: string | null;
@@ -40,6 +43,19 @@ export function criarUrlAutenticacao(rota: "/login" | "/cadastro") {
 }
 
 export class DadosEntregaInvalidosError extends Error {}
+
+export function calcularTrocoEmCentavos(valorParaTroco: number, totalEmCentavos: number) {
+  const valorParaTrocoEmCentavos = Math.round(valorParaTroco * 100);
+  if (!Number.isInteger(totalEmCentavos) || totalEmCentavos < 0 || valorParaTrocoEmCentavos <= totalEmCentavos) {
+    throw new DadosEntregaInvalidosError(
+      `O valor para troco deve ser maior que o total definitivo de R$ ${(totalEmCentavos / 100).toFixed(2).replace(".", ",")}`,
+    );
+  }
+  return {
+    valorParaTrocoEmCentavos,
+    valorTrocoEmCentavos: valorParaTrocoEmCentavos - totalEmCentavos,
+  };
+}
 
 function lerTexto(
   data: Record<string, unknown>,
@@ -121,11 +137,26 @@ export function normalizarDadosCheckout(data: unknown): DadosCheckout {
 
   const entrega = metodoEntrega === "Entrega";
   const endereco = entrega ? normalizarEnderecoEntrega(campos) : null;
+  const precisaTrocoRecebido = campos.precisaTroco;
+  if (precisaTrocoRecebido !== undefined && typeof precisaTrocoRecebido !== "boolean") {
+    throw new DadosEntregaInvalidosError("Informe corretamente se precisa de troco");
+  }
+  const precisaTroco = formaPagamento === "Dinheiro" && precisaTrocoRecebido === true;
+  let valorParaTroco: number | null = null;
+  if (precisaTroco) {
+    const valor = campos.valorParaTroco;
+    if (typeof valor !== "number" || !Number.isFinite(valor) || valor <= 0 || valor > 100000 || Math.abs(Math.round(valor * 100) - valor * 100) > 1e-8) {
+      throw new DadosEntregaInvalidosError("Informe um valor válido, com até duas casas decimais, para o troco");
+    }
+    valorParaTroco = valor;
+  }
   return {
     nomeCliente: lerTexto(campos, "nomeCliente", "Nome", 2, 100)!,
     telefone: normalizarTelefone(campos.telefone),
     metodoEntrega: metodoEntrega as MetodoEntrega,
     formaPagamento: formaPagamento as FormaPagamento,
+    precisaTroco,
+    valorParaTroco,
     cep: endereco?.cep ?? null,
     rua: endereco?.rua ?? null,
     numero: endereco?.numero ?? null,

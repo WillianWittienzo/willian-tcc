@@ -2,6 +2,7 @@ import type { Card, Categoria } from "@/components/data/cardapio";
 
 type CriarProdutoData = {
   nome: string;
+  disponivel: boolean;
   description: string;
   categoria: Categoria;
   image: string;

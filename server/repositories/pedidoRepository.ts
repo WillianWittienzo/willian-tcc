@@ -22,6 +22,9 @@ type CriarPedidoData = {
   taxaEntrega: number;
   metodoEntrega: MetodoEntrega;
   formaPagamento: FormaPagamento;
+  precisaTroco: boolean | null;
+  valorParaTroco: number | null;
+  valorTroco: number | null;
   itens: {
     produtoId: number;
     nomeProduto: string;
@@ -110,6 +113,9 @@ export const pedidoRepository = {
           create: {
             valor: data.valorTotal,
             formaPagamento: data.formaPagamento,
+            precisaTroco: data.precisaTroco,
+            valorParaTroco: data.valorParaTroco,
+            valorTroco: data.valorTroco,
           },
         },
       },

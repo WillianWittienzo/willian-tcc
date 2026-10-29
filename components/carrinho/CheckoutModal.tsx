@@ -38,6 +38,8 @@ export function CheckoutModal({ enviando, itens, subtotal, onCancelar, onConfirm
   const [campos, setCampos] = useState(camposIniciais);
   const [metodoEntrega, setMetodoEntrega] = useState<MetodoEntrega | "">("");
   const [formaPagamento, setFormaPagamento] = useState<FormaPagamento | "">("");
+  const [precisaTroco, setPrecisaTroco] = useState(false);
+  const [valorParaTroco, setValorParaTroco] = useState("");
   const [erro, setErro] = useState("");
   const [carregandoPerfil, setCarregandoPerfil] = useState(true);
 
@@ -74,7 +76,13 @@ export function CheckoutModal({ enviando, itens, subtotal, onCancelar, onConfirm
     event.preventDefault();
     setErro("");
     try {
-      const dados = normalizarDadosCheckout({ ...campos, metodoEntrega, formaPagamento });
+      const dados = normalizarDadosCheckout({
+        ...campos,
+        metodoEntrega,
+        formaPagamento,
+        precisaTroco,
+        valorParaTroco: precisaTroco ? Number(valorParaTroco) : null,
+      });
       await onConfirmar(dados);
     } catch (error) {
       setErro(
@@ -157,11 +165,34 @@ export function CheckoutModal({ enviando, itens, subtotal, onCancelar, onConfirm
 
           <label className="text-sm font-semibold sm:col-span-2">
             Forma de pagamento *
-            <select value={formaPagamento} onChange={(event) => setFormaPagamento(event.target.value as FormaPagamento)} className={classeCampo} required>
+            <select value={formaPagamento} onChange={(event) => {
+              const forma = event.target.value as FormaPagamento;
+              setFormaPagamento(forma);
+              if (forma !== "Dinheiro") {
+                setPrecisaTroco(false);
+                setValorParaTroco("");
+              }
+            }} className={classeCampo} required>
               <option value="">Selecione</option>
               {FORMAS_PAGAMENTO.map((forma) => <option key={forma} value={forma}>{forma}</option>)}
             </select>
           </label>
+
+          {formaPagamento === "Dinheiro" && (
+            <fieldset className="rounded-lg border border-amber-200 bg-amber-50 p-4 sm:col-span-2">
+              <legend className="px-1 text-sm font-semibold">Precisa de troco? *</legend>
+              <div className="mt-2 flex gap-4">
+                <label className="flex items-center gap-2"><input type="radio" name="precisaTroco" checked={!precisaTroco} onChange={() => { setPrecisaTroco(false); setValorParaTroco(""); }} /> Não</label>
+                <label className="flex items-center gap-2"><input type="radio" name="precisaTroco" checked={precisaTroco} onChange={() => setPrecisaTroco(true)} /> Sim</label>
+              </div>
+              {precisaTroco && (
+                <label className="mt-3 block text-sm font-semibold">
+                  Troco para qual valor? *
+                  <input type="number" min="0.01" max="100000" step="0.01" inputMode="decimal" value={valorParaTroco} onChange={(event) => setValorParaTroco(event.target.value)} placeholder="Ex.: 100,00" className={classeCampo} required />
+                </label>
+              )}
+            </fieldset>
+          )}
 
           <section className="rounded-lg bg-gray-50 p-4 sm:col-span-2" aria-label="Resumo do pedido">
             <h3 className="font-bold">Resumo</h3>
@@ -181,6 +212,9 @@ export function CheckoutModal({ enviando, itens, subtotal, onCancelar, onConfirm
               <div className="flex justify-between"><span>Subtotal</span><span>{moeda.format(subtotal)}</span></div>
               <div className="flex justify-between"><span>{metodoEntrega === "Retirada" ? "Retirada" : "Entrega"}</span><span>{metodoEntrega ? (taxa === 0 ? "Grátis" : moeda.format(taxa)) : "Selecione"}</span></div>
               <div className="flex justify-between"><span>Pagamento</span><span>{formaPagamento || "Selecione"}</span></div>
+              {formaPagamento === "Dinheiro" && (
+                <div className="flex justify-between"><span>Troco</span><span>{precisaTroco ? (valorParaTroco ? `Para ${moeda.format(Number(valorParaTroco))}` : "Informe o valor") : "Não precisa"}</span></div>
+              )}
               <div className="flex justify-between pt-1 text-base font-bold"><span>Total estimado</span><span>{moeda.format(subtotal + taxa)}</span></div>
               <p className="pt-1 text-xs text-gray-500">Os valores são recalculados e validados pelo servidor ao confirmar.</p>
             </div>

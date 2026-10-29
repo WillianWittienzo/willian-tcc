@@ -1,26 +1,36 @@
 import { randomBytes, scrypt, timingSafeEqual, createHash } from "node:crypto";
 import { promisify } from "node:util";
+import { TipoTokenConta } from "@/app/generated/prisma/client";
 import {
   DadosEntregaInvalidosError,
   normalizarEnderecoEntrega,
   normalizarTelefone,
 } from "@/lib/checkout";
+import { cpfValido, somenteDigitosCpf } from "@/lib/cpf";
+import { erroSenhaForte } from "@/lib/senha";
 import { authRepository } from "@/server/repositories/authRepository";
+import { emailService, urlSeguraDaAplicacao } from "@/server/services/emailService";
 
 const scryptAsync = promisify(scrypt);
 const DURACAO_SESSAO_MS = 7 * 24 * 60 * 60 * 1000;
+const DURACAO_VERIFICACAO_EMAIL_MS = 24 * 60 * 60 * 1000;
+const DURACAO_RECUPERACAO_SENHA_MS = 30 * 60 * 1000;
 
 export class AuthCredenciaisInvalidasError extends Error {}
 export class AuthDadosInvalidosError extends Error {}
 export class AuthEmailDuplicadoError extends Error {}
+export class AuthCpfDuplicadoError extends Error {}
+export class AuthTokenInvalidoError extends Error {}
 
-function emailDuplicadoNoBanco(error: unknown) {
-  return (
+function campoDuplicadoNoBanco(error: unknown, campo: string) {
+  if (!(
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
     error.code === "P2002"
-  );
+  )) return false;
+  const alvo = "meta" in error && error.meta ? JSON.stringify(error.meta) : "";
+  return alvo.includes(campo);
 }
 
 function usuarioPublico(usuario: {
@@ -28,6 +38,7 @@ function usuarioPublico(usuario: {
   nome: string;
   email: string;
   telefone: string | null;
+  emailVerificadoEm: Date | null;
   papel: "Cliente" | "Admin";
 }) {
   return {
@@ -35,6 +46,7 @@ function usuarioPublico(usuario: {
     nome: usuario.nome,
     email: usuario.email,
     telefone: usuario.telefone,
+    emailVerificado: usuario.emailVerificadoEm !== null,
     papel: usuario.papel,
   };
 }
@@ -43,6 +55,7 @@ function perfilPublico(usuario: Awaited<ReturnType<typeof authRepository.buscarP
   if (!usuario) return null;
   return {
     ...usuarioPublico(usuario),
+    cpf: usuario.cpf,
     cep: usuario.cep,
     rua: usuario.rua,
     numero: usuario.numero,
@@ -54,6 +67,57 @@ function perfilPublico(usuario: Awaited<ReturnType<typeof authRepository.buscarP
 
 export function hashTokenSessao(token: string) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+function escaparHtml(valor: string) {
+  return valor.replace(/[&<>'"]/g, (caractere) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '"': "&quot;",
+  })[caractere]!);
+}
+
+async function criarTokenConta(usuarioId: number, tipo: TipoTokenConta, duracaoMs: number) {
+  const token = randomBytes(32).toString("base64url");
+  await authRepository.criarTokenConta({
+    usuarioId,
+    tipo,
+    tokenHash: hashTokenSessao(token),
+    expiraEm: new Date(Date.now() + duracaoMs),
+  });
+  return token;
+}
+
+async function enviarVerificacaoEmail(usuario: { id: number; nome: string; email: string }) {
+  if (!emailService.configurado()) return false;
+  const token = await criarTokenConta(usuario.id, TipoTokenConta.VerificacaoEmail, DURACAO_VERIFICACAO_EMAIL_MS);
+  const link = urlSeguraDaAplicacao("/confirmar-email", token);
+  if (!link) return false;
+  const nome = escaparHtml(usuario.nome);
+  const resultado = await emailService.enviar({
+    para: usuario.email,
+    assunto: "Confirme seu e-mail — Brasa Quente",
+    texto: `Olá, ${usuario.nome}. Confirme seu e-mail acessando este link, válido por 24 horas: ${link}`,
+    html: `<p>Olá, ${nome}.</p><p>Confirme seu e-mail no Brasa Quente:</p><p><a href="${link}">Confirmar e-mail</a></p><p>O link é válido por 24 horas e pode ser usado uma única vez.</p>`,
+  });
+  return resultado.enviado;
+}
+
+async function enviarRecuperacaoSenha(usuario: { id: number; nome: string; email: string }) {
+  if (!emailService.configurado()) return false;
+  const token = await criarTokenConta(usuario.id, TipoTokenConta.RecuperacaoSenha, DURACAO_RECUPERACAO_SENHA_MS);
+  const link = urlSeguraDaAplicacao("/redefinir-senha", token);
+  if (!link) return false;
+  const nome = escaparHtml(usuario.nome);
+  const resultado = await emailService.enviar({
+    para: usuario.email,
+    assunto: "Recuperação de senha — Brasa Quente",
+    texto: `Olá, ${usuario.nome}. Redefina sua senha acessando este link, válido por 30 minutos: ${link}`,
+    html: `<p>Olá, ${nome}.</p><p>Use o link abaixo para redefinir sua senha:</p><p><a href="${link}">Redefinir senha</a></p><p>O link expira em 30 minutos e pode ser usado uma única vez.</p>`,
+  });
+  return resultado.enviado;
 }
 
 export async function gerarHashSenha(senha: string) {
@@ -86,6 +150,7 @@ export function validarCadastro(data: unknown) {
     : "";
   const email = typeof campos.email === "string" ? campos.email.trim().toLowerCase() : "";
   const senha = typeof campos.senha === "string" ? campos.senha : "";
+  const cpf = somenteDigitosCpf(campos.cpf);
   let telefone: string;
 
   try {
@@ -100,11 +165,14 @@ export function validarCadastro(data: unknown) {
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     throw new AuthDadosInvalidosError("Informe um e-mail válido");
   }
-  if (senha.length < 8 || senha.length > 128) {
-    throw new AuthDadosInvalidosError("Senha deve ter entre 8 e 128 caracteres");
+  const erroSenha = erroSenhaForte(senha);
+  if (erroSenha) throw new AuthDadosInvalidosError(erroSenha);
+
+  if (!cpfValido(cpf)) {
+    throw new AuthDadosInvalidosError("Informe um CPF válido");
   }
 
-  return { nome, email, telefone, senha };
+  return { nome, email, telefone, cpf, senha };
 }
 
 export function validarLogin(data: unknown) {
@@ -126,6 +194,7 @@ export function validarDadosPessoais(data: unknown) {
   }
   const campos = data as Record<string, unknown>;
   const nome = typeof campos.nome === "string" ? campos.nome.trim().replace(/\s+/g, " ") : "";
+  const cpfRecebido = somenteDigitosCpf(campos.cpf);
   let telefone: string;
   try {
     telefone = normalizarTelefone(campos.telefone);
@@ -135,7 +204,10 @@ export function validarDadosPessoais(data: unknown) {
   if (nome.length < 2 || nome.length > 100) {
     throw new AuthDadosInvalidosError("Nome deve ter entre 2 e 100 caracteres");
   }
-  return { nome, telefone };
+  if (cpfRecebido && !cpfValido(cpfRecebido)) {
+    throw new AuthDadosInvalidosError("Informe um CPF válido");
+  }
+  return { nome, telefone, cpf: cpfRecebido || null };
 }
 
 export function validarAlteracaoSenha(data: unknown) {
@@ -149,9 +221,8 @@ export function validarAlteracaoSenha(data: unknown) {
   if (!senhaAtual || senhaAtual.length > 128) {
     throw new AuthDadosInvalidosError("Informe a senha atual");
   }
-  if (novaSenha.length < 8 || novaSenha.length > 128) {
-    throw new AuthDadosInvalidosError("A nova senha deve ter entre 8 e 128 caracteres");
-  }
+  const erroSenha = erroSenhaForte(novaSenha);
+  if (erroSenha) throw new AuthDadosInvalidosError(erroSenha);
   if (novaSenha !== confirmarNovaSenha) {
     throw new AuthDadosInvalidosError("As novas senhas não coincidem");
   }
@@ -165,7 +236,26 @@ export const authService = {
 
   async atualizarDadosPessoais(usuarioId: number, data: unknown) {
     const dados = validarDadosPessoais(data);
-    return perfilPublico(await authRepository.atualizarDadosPessoais(usuarioId, dados));
+    const usuario = await authRepository.buscarPorId(usuarioId);
+    if (!usuario) throw new AuthDadosInvalidosError("Cliente não encontrado");
+    const cpf = dados.cpf ?? usuario.cpf;
+    if (cpf) {
+      const existente = await authRepository.buscarPorCpf(cpf);
+      if (existente && existente.id !== usuarioId) {
+        throw new AuthCpfDuplicadoError("CPF já cadastrado em outra conta");
+      }
+    }
+    try {
+      return perfilPublico(await authRepository.atualizarDadosPessoais(usuarioId, {
+        ...dados,
+        cpf,
+      }));
+    } catch (error) {
+      if (campoDuplicadoNoBanco(error, "cpf")) {
+        throw new AuthCpfDuplicadoError("CPF já cadastrado em outra conta");
+      }
+      throw error;
+    }
   },
 
   async atualizarEndereco(usuarioId: number, data: unknown) {
@@ -198,18 +288,34 @@ export const authService = {
     if (await authRepository.buscarPorEmail(dados.email)) {
       throw new AuthEmailDuplicadoError("E-mail já cadastrado");
     }
+    if (await authRepository.buscarPorCpf(dados.cpf)) {
+      throw new AuthCpfDuplicadoError("CPF já cadastrado em outra conta");
+    }
 
     try {
       const usuario = await authRepository.criarCliente({
         nome: dados.nome,
         email: dados.email,
         telefone: dados.telefone,
+        cpf: dados.cpf,
         senhaHash: await gerarHashSenha(dados.senha),
       });
-      return usuarioPublico(usuario);
+      let emailEnviado = false;
+      try {
+        emailEnviado = await enviarVerificacaoEmail(usuario);
+      } catch (error) {
+        console.error("Não foi possível preparar a verificação de e-mail:", error instanceof Error ? error.message : "erro desconhecido");
+      }
+      return {
+        usuario: usuarioPublico(usuario),
+        emailEnviado,
+      };
     } catch (error) {
-      if (emailDuplicadoNoBanco(error)) {
+      if (campoDuplicadoNoBanco(error, "email")) {
         throw new AuthEmailDuplicadoError("E-mail já cadastrado");
+      }
+      if (campoDuplicadoNoBanco(error, "cpf")) {
+        throw new AuthCpfDuplicadoError("CPF já cadastrado em outra conta");
       }
       throw error;
     }
@@ -248,5 +354,69 @@ export const authService = {
 
   async logout(token?: string) {
     if (token) await authRepository.excluirSessao(hashTokenSessao(token));
+  },
+
+  async reenviarVerificacaoEmail(usuarioId: number) {
+    const usuario = await authRepository.buscarPorId(usuarioId);
+    if (!usuario || usuario.papel !== "Cliente" || usuario.emailVerificadoEm) return false;
+    return enviarVerificacaoEmail(usuario);
+  },
+
+  async confirmarEmail(data: unknown) {
+    const token = typeof data === "object" && data !== null && "token" in data && typeof data.token === "string"
+      ? data.token
+      : "";
+    if (!/^[A-Za-z0-9_-]{43}$/.test(token)) throw new AuthTokenInvalidoError("Link de confirmação inválido ou expirado");
+    const registro = await authRepository.buscarTokenConta(
+      hashTokenSessao(token),
+      TipoTokenConta.VerificacaoEmail,
+    );
+    const agora = new Date();
+    if (!registro || registro.usadoEm || registro.expiraEm <= agora) {
+      throw new AuthTokenInvalidoError("Link de confirmação inválido ou expirado");
+    }
+    if (!(await authRepository.confirmarEmailComToken(registro.id, registro.usuarioId, agora))) {
+      throw new AuthTokenInvalidoError("Link de confirmação inválido ou expirado");
+    }
+  },
+
+  async solicitarRecuperacaoSenha(data: unknown) {
+    const email = typeof data === "object" && data !== null && "email" in data && typeof data.email === "string"
+      ? data.email.trim().toLowerCase()
+      : "";
+    if (email && email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      const usuario = await authRepository.buscarPorEmail(email);
+      if (usuario?.papel === "Cliente") await enviarRecuperacaoSenha(usuario);
+    }
+    return { emailConfigurado: emailService.configurado() };
+  },
+
+  async redefinirSenha(data: unknown) {
+    if (typeof data !== "object" || data === null || Array.isArray(data)) {
+      throw new AuthDadosInvalidosError("Dados de recuperação inválidos");
+    }
+    const campos = data as Record<string, unknown>;
+    const token = typeof campos.token === "string" ? campos.token : "";
+    const novaSenha = typeof campos.novaSenha === "string" ? campos.novaSenha : "";
+    const confirmarNovaSenha = typeof campos.confirmarNovaSenha === "string" ? campos.confirmarNovaSenha : "";
+    const erroSenha = erroSenhaForte(novaSenha);
+    if (erroSenha) throw new AuthDadosInvalidosError(erroSenha);
+    if (novaSenha !== confirmarNovaSenha) throw new AuthDadosInvalidosError("As novas senhas não coincidem");
+    if (!/^[A-Za-z0-9_-]{43}$/.test(token)) throw new AuthTokenInvalidoError("Link de recuperação inválido ou expirado");
+    const registro = await authRepository.buscarTokenConta(
+      hashTokenSessao(token),
+      TipoTokenConta.RecuperacaoSenha,
+    );
+    const agora = new Date();
+    if (!registro || registro.usadoEm || registro.expiraEm <= agora) {
+      throw new AuthTokenInvalidoError("Link de recuperação inválido ou expirado");
+    }
+    const redefinida = await authRepository.redefinirSenhaComToken(
+      registro.id,
+      registro.usuarioId,
+      await gerarHashSenha(novaSenha),
+      agora,
+    );
+    if (!redefinida) throw new AuthTokenInvalidoError("Link de recuperação inválido ou expirado");
   },
 };

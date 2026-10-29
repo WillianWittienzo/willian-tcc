@@ -1,5 +1,5 @@
 import type { NomeBorda, NomeBordaRecheada, TamanhoProduto } from "@/lib/catalogo";
-import type { DadosCheckout, FormaPagamento } from "@/lib/checkout";
+import type { DadosCheckout, FormaPagamentoHistorica } from "@/lib/checkout";
 import type { MetodoEntrega } from "@/lib/pedido";
 import {
   STATUS_PEDIDO,
@@ -56,7 +56,10 @@ export type Pedido = {
   recebimento: {
     id: number;
     valor: number;
-    formaPagamento: FormaPagamento;
+    formaPagamento: FormaPagamentoHistorica;
+    precisaTroco: boolean | null;
+    valorParaTroco: number | null;
+    valorTroco: number | null;
     status: StatusRecebimento;
     criadoEm: string;
     atualizadoEm: string;
@@ -65,7 +68,7 @@ export type Pedido = {
 };
 
 export type PedidoPublico = Pick<Pedido, "id" | "criadoEm" | "metodoEntrega" | "valorTotal" | "taxaEntrega" | "status" | "itens"> & {
-  recebimento: Pick<NonNullable<Pedido["recebimento"]>, "valor" | "formaPagamento" | "status"> | null;
+  recebimento: Pick<NonNullable<Pedido["recebimento"]>, "valor" | "formaPagamento" | "status" | "precisaTroco" | "valorParaTroco" | "valorTroco"> | null;
 };
 
 export type PaginaPedidos = {
@@ -108,12 +111,15 @@ export async function listarPedidos(filtros: FiltrosPedidos): Promise<PaginaPedi
   return response.json();
 }
 
-export async function listarPedidosKanban(filtros: FiltrosDataPedido): Promise<KanbanPedidos> {
+export async function listarPedidosKanban(
+  filtros: FiltrosDataPedido,
+  signal?: AbortSignal,
+): Promise<KanbanPedidos> {
   const parametros = new URLSearchParams({ visualizacao: "kanban" });
   if (filtros.dia !== null) parametros.set("dia", String(filtros.dia));
   if (filtros.mes !== null) parametros.set("mes", String(filtros.mes));
   if (filtros.ano !== null) parametros.set("ano", String(filtros.ano));
-  const response = await fetch(`/api/pedidos?${parametros}`);
+  const response = await fetch(`/api/pedidos?${parametros}`, { signal });
   if (!response.ok) {
     const data = await response.json().catch(() => null);
     throw new Error(data?.erro ?? "Erro ao buscar pedidos");

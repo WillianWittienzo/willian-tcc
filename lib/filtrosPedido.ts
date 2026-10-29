@@ -45,10 +45,11 @@ export const LIMITE_PADRAO_PEDIDOS = 10;
 export const LIMITE_MAXIMO_PEDIDOS = 50;
 export const FUSO_HORARIO_PEDIDOS = "America/Sao_Paulo";
 export const STATUS_EXCLUIDO_RECEITA: StatusPedido = "Cancelado";
+export const LIMITE_DESTAQUE_PENDENTE_MINUTOS = 30;
 
 export const TRANSICOES_STATUS_PEDIDO: Record<StatusPedido, readonly StatusPedido[]> = {
-  Pendente: ["EmPreparo", "Cancelado"],
-  EmPreparo: ["SaiuParaEntrega", "Cancelado"],
+  Pendente: ["EmPreparo", "SaiuParaEntrega", "Entregue", "Cancelado"],
+  EmPreparo: ["SaiuParaEntrega", "Entregue", "Cancelado"],
   SaiuParaEntrega: ["Entregue", "Cancelado"],
   Entregue: [],
   Cancelado: [],
@@ -56,6 +57,21 @@ export const TRANSICOES_STATUS_PEDIDO: Record<StatusPedido, readonly StatusPedid
 
 export function transicaoStatusPermitida(atual: StatusPedido, proximo: StatusPedido) {
   return atual === proximo || TRANSICOES_STATUS_PEDIDO[atual].includes(proximo);
+}
+
+export function minutosAguardandoPedido(criadoEm: Date | string, agora = new Date()) {
+  const inicio = new Date(criadoEm).getTime();
+  if (!Number.isFinite(inicio)) return 0;
+  return Math.max(0, Math.floor((agora.getTime() - inicio) / 60_000));
+}
+
+export function pedidoPendenteAntigo(
+  status: StatusPedido,
+  criadoEm: Date | string,
+  agora = new Date(),
+) {
+  return status === "Pendente"
+    && minutosAguardandoPedido(criadoEm, agora) >= LIMITE_DESTAQUE_PENDENTE_MINUTOS;
 }
 
 export class ParametrosFiltroInvalidosError extends Error {}
@@ -175,6 +191,11 @@ function partesNoFuso(data: Date) {
     minuto: partes.minute,
     segundo: partes.second,
   };
+}
+
+export function obterDataAtualNoFuso(agora = new Date()): FiltrosDataPedido {
+  const partes = partesNoFuso(agora);
+  return { dia: partes.dia, mes: partes.mes, ano: partes.ano };
 }
 
 function deslocamentoDoFuso(data: Date) {

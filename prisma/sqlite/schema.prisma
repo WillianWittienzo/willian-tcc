@@ -54,6 +54,11 @@ enum PapelUsuario {
   Admin
 }
 
+enum TipoTokenConta {
+  VerificacaoEmail
+  RecuperacaoSenha
+}
+
 enum NomeBorda {
   Catupiry
   Cheddar
@@ -62,12 +67,27 @@ enum NomeBorda {
 model Produto {
   id                 Int              @id @default(autoincrement())
   nome               String
+  disponivel         Boolean          @default(true)
   categoria          Categoria
   description        String
   image              String
   descontoPercentual Int?
   tamanhos           ProdutoTamanho[]
   itensPedido        ItemPedido[]
+}
+
+model ConfiguracaoFuncionamento {
+  id               Int      @id @default(1)
+  fechamentoManual Boolean  @default(false)
+  atualizadoEm     DateTime @updatedAt
+}
+
+model HorarioFuncionamento {
+  id         Int     @id @default(autoincrement())
+  diaSemana  Int     @unique
+  fechado    Boolean @default(false)
+  abertura   String
+  fechamento String
 }
 
 model ProdutoTamanho {
@@ -113,6 +133,9 @@ model Recebimento {
   pedidoId       Int               @unique
   valor          Decimal
   formaPagamento FormaPagamento
+  precisaTroco   Boolean?
+  valorParaTroco Decimal?
+  valorTroco     Decimal?
   status         StatusRecebimento @default(Pendente)
   criadoEm       DateTime          @default(now())
   atualizadoEm   DateTime          @updatedAt
@@ -127,6 +150,8 @@ model Usuario {
   nome        String
   email       String       @unique
   telefone    String?
+  cpf         String?      @unique
+  emailVerificadoEm DateTime?
   cep         String?
   rua         String?
   numero      String?
@@ -138,6 +163,21 @@ model Usuario {
   criadoEm    DateTime     @default(now())
   pedidos     Pedido[]
   sessoes     Sessao[]
+  tokensConta TokenConta[]
+}
+
+model TokenConta {
+  id        Int            @id @default(autoincrement())
+  usuarioId Int
+  tipo      TipoTokenConta
+  tokenHash String         @unique
+  expiraEm  DateTime
+  usadoEm   DateTime?
+  criadoEm  DateTime       @default(now())
+  usuario   Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, tipo])
+  @@index([expiraEm])
 }
 
 model Sessao {
